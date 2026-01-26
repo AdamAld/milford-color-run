@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Check, ArrowRight, Users, Clock, Smartphone } from "lucide-react";
+import { Check, ArrowRight, Users, Smartphone } from "lucide-react";
+import { RegistrationForm } from "./RegistrationForm";
 
 const pricingTiers = [
   {
@@ -163,7 +164,7 @@ export function Registration() {
               </ul>
 
               <motion.a
-                href="#"
+                href="#registration-form"
                 className={`block w-full py-4 rounded-xl text-center font-semibold transition-all ${
                   tier.popular
                     ? "gradient-button text-white"
@@ -171,6 +172,10 @@ export function Registration() {
                 }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("registration-form")?.scrollIntoView({ behavior: "smooth" });
+                }}
               >
                 <span className="flex items-center justify-center gap-2">
                   Register Now <ArrowRight size={18} />
@@ -222,6 +227,17 @@ export function Registration() {
           </div>
         </motion.div>
 
+        {/* Registration Form */}
+        <motion.div
+          id="registration-form"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="max-w-2xl mx-auto mb-16 scroll-mt-24"
+        >
+          <RegistrationForm />
+        </motion.div>
+
         {/* Venmo Payment Info */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -239,15 +255,18 @@ export function Registration() {
             </h3>
             <p className="text-[var(--foreground-muted)] mb-4 max-w-md">
               After completing your registration form, send payment to our
-              Venmo account. Include your name in the payment note.
+              Venmo account. Include <span className="text-white font-semibold">SOS Color Run</span> and your name in the payment note.
             </p>
             <div className="glass rounded-xl px-6 py-3 mb-4">
               <span className="text-lg font-mono text-[var(--sos-teal)]">
-                @MilfordSOS-ColorRun
+                @Carla-Rawlins
               </span>
             </div>
             <p className="text-xs text-[var(--foreground-muted)]">
-              Venmo handle will be confirmed upon registration launch
+              Questions? Email us at{" "}
+              <a href="mailto:c_gray@milfordschools.org" className="text-[var(--sos-teal)] hover:underline">
+                c_gray@milfordschools.org
+              </a>
             </p>
           </div>
         </motion.div>

@@ -44,12 +44,6 @@ const included = [
     color: "var(--color-pink)",
   },
   {
-    icon: Music,
-    title: '"Krank dat Kenny" Post-Race Party',
-    description: "Music, fun, and celebration",
-    color: "var(--sos-purple)",
-  },
-  {
     icon: Camera,
     title: "Photo Ops",
     description: "Capture colorful memories",
