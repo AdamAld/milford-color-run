@@ -1,26 +1,250 @@
 @import "tailwindcss";
 
+/* Custom CSS Variables for Color System */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Official Sources of Strength Wheel Colors (Verified) */
+  --sos-orange: #F26522;      /* Family Support */
+  --sos-yellow: #FFC20E;      /* Positive Friends */
+  --sos-green: #39B54A;       /* Mentors */
+  --sos-blue: #29ABE2;        /* Healthy Activities */
+  --sos-gray: #808080;        /* Generosity */
+  --sos-purple: #92278F;      /* Spirituality */
+  --sos-lightblue: #87CEEB;   /* Physical Health */
+  --sos-red: #ED1C24;         /* Mental Health */
+
+  /* Legacy alias */
+  --sos-teal: #29ABE2;
+
+  /* Color Run Accent Colors */
+  --color-red: #ED1C24;
+  --color-yellow: #FFC20E;
+  --color-green: #39B54A;
+  --color-orange: #F26522;
+  --color-blue: #29ABE2;
+  --color-lightblue: #87CEEB;
+
+  /* Dark Theme */
+  --background: #0A0A0B;
+  --background-secondary: #111113;
+  --background-tertiary: #1A1A1D;
+  --foreground: #FFFFFF;
+  --foreground-muted: #A1A1AA;
+
+  /* Gradient */
+  --gradient-primary: linear-gradient(135deg, var(--sos-teal) 0%, var(--sos-purple) 100%);
+  --gradient-hero: linear-gradient(135deg, #0A0A0B 0%, #1a1a2e 50%, #16213e 100%);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-sos-teal: var(--sos-teal);
+  --color-sos-purple: var(--sos-purple);
+  --color-pink: var(--color-pink);
+  --color-yellow: var(--color-yellow);
+  --color-green: var(--color-green);
+  --color-orange: var(--color-orange);
+  --color-blue: var(--color-blue);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Smooth Scroll Container for Lenis */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient Button */
+.gradient-button {
+  background: var(--gradient-primary);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gradient-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(72, 187, 205, 0.3);
+}
+
+.gradient-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--sos-purple) 0%, var(--sos-teal) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-button:hover::before {
+  opacity: 1;
+}
+
+.gradient-button span {
+  position: relative;
+  z-index: 1;
+}
+
+/* Glass Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Color Powder Glow Effects */
+.glow-pink {
+  box-shadow: 0 0 60px rgba(255, 105, 180, 0.4);
+}
+
+.glow-yellow {
+  box-shadow: 0 0 60px rgba(255, 225, 53, 0.4);
+}
+
+.glow-green {
+  box-shadow: 0 0 60px rgba(50, 205, 50, 0.4);
+}
+
+.glow-orange {
+  box-shadow: 0 0 60px rgba(255, 107, 53, 0.4);
+}
+
+.glow-blue {
+  box-shadow: 0 0 60px rgba(0, 212, 255, 0.4);
+}
+
+/* Animated Gradient Background */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animated-gradient {
+  background: linear-gradient(-45deg, #0a0a0b, #1a1a2e, #16213e, #0f3460);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* Floating Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Pulse Animation */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Section Transitions */
+.section-dark {
+  background: var(--background);
+}
+
+.section-darker {
+  background: var(--background-secondary);
+}
+
+.section-gradient {
+  background: linear-gradient(180deg, var(--background) 0%, var(--background-secondary) 100%);
+}
+
+/* Card Hover Effects */
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Text Shadow for readability on gradients */
+.text-shadow {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sos-teal);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sos-purple);
+}
+
+/* Selection Color */
+::selection {
+  background: var(--sos-teal);
+  color: var(--background);
 }
