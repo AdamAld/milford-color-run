@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-
 // Official SOS Wheel Colors (Verified)
 const wheelColors = [
   { name: "Family Support", color: "#F26522" },      // Orange
@@ -23,7 +21,6 @@ interface SOSWheelLogoProps {
 export function SOSWheelLogo({
   size = 40,
   className = "",
-  animate = false,
 }: SOSWheelLogoProps) {
   const segmentAngle = 360 / 8;
   const radius = size / 2;
@@ -47,24 +44,17 @@ export function SOSWheelLogo({
   };
 
   return (
-    <motion.svg
+    <svg
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      className={className}
-      initial={animate ? { rotate: 0, scale: 0.8, opacity: 0 } : {}}
-      animate={animate ? { rotate: 0, scale: 1, opacity: 1 } : {}}
-      whileHover={animate ? { rotate: 15, scale: 1.1 } : {}}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+      className={`transition-transform duration-300 hover:rotate-[15deg] hover:scale-110 ${className}`}
     >
       {wheelColors.map((segment, index) => (
-        <motion.path
+        <path
           key={segment.name}
           d={createSegmentPath(index)}
           fill={segment.color}
-          initial={animate ? { opacity: 0 } : {}}
-          animate={animate ? { opacity: 1 } : {}}
-          transition={{ delay: index * 0.05, duration: 0.3 }}
         />
       ))}
       {/* Center circle */}
@@ -74,7 +64,7 @@ export function SOSWheelLogo({
         r={innerRadius * 0.7}
         fill="var(--background, #0A0A0B)"
       />
-    </motion.svg>
+    </svg>
   );
 }
 
