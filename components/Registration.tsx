@@ -264,8 +264,8 @@ export function Registration() {
             </div>
             <p className="text-xs text-[var(--foreground-muted)]">
               Questions? Email us at{" "}
-              <a href="mailto:c_gray@milfordschools.org" className="text-[var(--sos-teal)] hover:underline">
-                c_gray@milfordschools.org
+              <a href="mailto:gray_c@milfordschools.org" className="text-[var(--sos-teal)] hover:underline">
+                gray_c@milfordschools.org
               </a>
             </p>
           </div>

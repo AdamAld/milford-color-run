@@ -237,8 +237,8 @@ export function RegistrationForm() {
 
         <p className="text-sm text-[var(--foreground-muted)] mb-6">
           Questions? Contact us at{" "}
-          <a href="mailto:c_gray@milfordschools.org" className="text-[var(--sos-teal)] hover:underline">
-            c_gray@milfordschools.org
+          <a href="mailto:gray_c@milfordschools.org" className="text-[var(--sos-teal)] hover:underline">
+            gray_c@milfordschools.org
           </a>
         </p>
 
