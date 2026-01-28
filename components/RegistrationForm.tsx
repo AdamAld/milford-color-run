@@ -12,10 +12,40 @@ interface FormData {
   emergencyContactName: string;
   emergencyContactPhone: string;
   tshirtSize: string;
-  parentGuardianInfo: string;
+  parentGuardianName: string;
+  parentGuardianPhone: string;
   entryFeePayment: string;
   electronicSignature: string;
   waiverAgreed: boolean;
+}
+
+const EVENT_DATE = new Date("2026-03-22");
+
+function getAge(dob: string): number | null {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  if (isNaN(birth.getTime())) return null;
+  let age = EVENT_DATE.getFullYear() - birth.getFullYear();
+  const m = EVENT_DATE.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && EVENT_DATE.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+function getTodayFormatted(): string {
+  const now = new Date();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const yyyy = now.getFullYear();
+  return `${mm}/${dd}/${yyyy}`;
 }
 
 interface FormErrors {
@@ -50,8 +80,9 @@ export function RegistrationForm() {
     emergencyContactName: "",
     emergencyContactPhone: "",
     tshirtSize: "",
-    parentGuardianInfo: "",
-    entryFeePayment: "Yes, I paid",
+    parentGuardianName: "",
+    parentGuardianPhone: "",
+    entryFeePayment: "VENMO",
     electronicSignature: "",
     waiverAgreed: false,
   });
@@ -67,6 +98,9 @@ export function RegistrationForm() {
       formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [submitStatus]);
+
+  const age = getAge(formData.dateOfBirth);
+  const isMinor = age !== null && age < 18;
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -89,6 +123,10 @@ export function RegistrationForm() {
       newErrors.dateOfBirth = "Date of birth is required";
     }
 
+    if (formData.phone.trim() && formData.phone.replace(/\D/g, "").length !== 10) {
+      newErrors.phone = "Please enter a valid 10-digit phone number";
+    }
+
     if (!formData.tshirtSize) {
       newErrors.tshirtSize = "Please select a t-shirt size";
     }
@@ -99,10 +137,25 @@ export function RegistrationForm() {
 
     if (!formData.emergencyContactPhone.trim()) {
       newErrors.emergencyContactPhone = "Emergency contact phone is required";
+    } else if (formData.emergencyContactPhone.replace(/\D/g, "").length !== 10) {
+      newErrors.emergencyContactPhone = "Please enter a valid 10-digit phone number";
+    }
+
+    if (isMinor) {
+      if (!formData.parentGuardianName.trim()) {
+        newErrors.parentGuardianName = "Parent/guardian name is required for participants under 18";
+      }
+      if (!formData.parentGuardianPhone.trim()) {
+        newErrors.parentGuardianPhone = "Parent/guardian phone is required for participants under 18";
+      } else if (formData.parentGuardianPhone.replace(/\D/g, "").length !== 10) {
+        newErrors.parentGuardianPhone = "Please enter a valid 10-digit phone number";
+      }
     }
 
     if (!formData.electronicSignature.trim()) {
       newErrors.electronicSignature = "Electronic signature is required";
+    } else if (expectedSignature && formData.electronicSignature.trim() !== expectedSignature) {
+      newErrors.electronicSignature = `Please type exactly: ${expectedSignature}`;
     }
 
     if (!formData.waiverAgreed) {
@@ -139,7 +192,8 @@ export function RegistrationForm() {
           emergencyContactName: formData.emergencyContactName,
           emergencyContactPhone: formData.emergencyContactPhone,
           tshirtSize: formData.tshirtSize,
-          parentGuardianInfo: formData.parentGuardianInfo || "N/A",
+          parentGuardianName: formData.parentGuardianName || "",
+          parentGuardianPhone: formData.parentGuardianPhone || "",
           entryFeePayment: formData.entryFeePayment,
           electronicSignature: formData.electronicSignature,
           waiverAgreed: formData.waiverAgreed,
@@ -163,8 +217,9 @@ export function RegistrationForm() {
           emergencyContactName: "",
           emergencyContactPhone: "",
           tshirtSize: "",
-          parentGuardianInfo: "",
-          entryFeePayment: "Yes, I paid",
+          parentGuardianName: "",
+          parentGuardianPhone: "",
+          entryFeePayment: "VENMO",
           electronicSignature: "",
           waiverAgreed: false,
         });
@@ -192,8 +247,16 @@ export function RegistrationForm() {
     }
   };
 
+  const handlePhoneChange = (field: keyof FormData, raw: string) => {
+    handleInputChange(field, formatPhone(raw));
+  };
+
+  const expectedSignature = formData.firstName.trim() && formData.lastName.trim()
+    ? `${formData.firstName.trim().toUpperCase()} ${formData.lastName.trim().toUpperCase()} - ${getTodayFormatted()}`
+    : "";
+
   if (submitStatus === "success") {
-    const isVenmoPayment = submittedPaymentMethod === "Yes, I paid";
+    const isVenmoPayment = submittedPaymentMethod === "VENMO";
 
     return (
       <div ref={formRef} className="glass rounded-2xl p-8 md:p-10 text-center">
@@ -357,10 +420,15 @@ export function RegistrationForm() {
           <input
             type="tel"
             value={formData.phone}
-            onChange={(e) => handleInputChange("phone", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-[var(--sos-teal)] transition-colors"
+            onChange={(e) => handlePhoneChange("phone", e.target.value)}
+            className={`w-full px-4 py-3 rounded-xl bg-white/5 border ${
+              errors.phone ? "border-red-500" : "border-white/10"
+            } text-white placeholder-white/40 focus:outline-none focus:border-[var(--sos-teal)] transition-colors`}
             placeholder="(555) 123-4567"
           />
+          {errors.phone && (
+            <p className="text-red-400 text-sm mt-1">{errors.phone}</p>
+          )}
         </div>
 
         {/* T-Shirt Size */}
@@ -397,9 +465,9 @@ export function RegistrationForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               type="button"
-              onClick={() => handleInputChange("entryFeePayment", "Yes, I paid")}
+              onClick={() => handleInputChange("entryFeePayment", "VENMO")}
               className={`p-4 rounded-xl border-2 transition-all text-left ${
-                formData.entryFeePayment === "Yes, I paid"
+                formData.entryFeePayment === "VENMO"
                   ? "border-[var(--sos-teal)] bg-[var(--sos-teal)]/10"
                   : "border-white/10 hover:border-white/30"
               }`}
@@ -416,9 +484,9 @@ export function RegistrationForm() {
             </button>
             <button
               type="button"
-              onClick={() => handleInputChange("entryFeePayment", "No, I will pay cash and not recieve a shirt")}
+              onClick={() => handleInputChange("entryFeePayment", "CASH")}
               className={`p-4 rounded-xl border-2 transition-all text-left ${
-                formData.entryFeePayment === "No, I will pay cash and not recieve a shirt"
+                formData.entryFeePayment === "CASH"
                   ? "border-amber-500 bg-amber-500/10"
                   : "border-white/10 hover:border-white/30"
               }`}
@@ -473,7 +541,7 @@ export function RegistrationForm() {
           <input
             type="tel"
             value={formData.emergencyContactPhone}
-            onChange={(e) => handleInputChange("emergencyContactPhone", e.target.value)}
+            onChange={(e) => handlePhoneChange("emergencyContactPhone", e.target.value)}
             className={`w-full px-4 py-3 rounded-xl bg-white/5 border ${
               errors.emergencyContactPhone ? "border-red-500" : "border-white/10"
             } text-white placeholder-white/40 focus:outline-none focus:border-[var(--sos-teal)] transition-colors`}
@@ -484,19 +552,54 @@ export function RegistrationForm() {
           )}
         </div>
 
-        {/* Parent/Guardian Info (for minors) */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-white mb-2">
-            Parent/Guardian Name and Phone (if participant is under 18)
-          </label>
-          <input
-            type="text"
-            value={formData.parentGuardianInfo}
-            onChange={(e) => handleInputChange("parentGuardianInfo", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-[var(--sos-teal)] transition-colors"
-            placeholder="Parent/Guardian name and phone number"
-          />
-        </div>
+        {/* Parent/Guardian Fields (shown for minors) */}
+        {isMinor && (
+          <>
+            <div className="md:col-span-2">
+              <div className="border-t border-white/10 pt-6 mt-2">
+                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  Parent/Guardian Information (required for participants under 18)
+                </h4>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                Parent/Guardian Name *
+              </label>
+              <input
+                type="text"
+                value={formData.parentGuardianName}
+                onChange={(e) => handleInputChange("parentGuardianName", e.target.value)}
+                className={`w-full px-4 py-3 rounded-xl bg-white/5 border ${
+                  errors.parentGuardianName ? "border-red-500" : "border-white/10"
+                } text-white placeholder-white/40 focus:outline-none focus:border-[var(--sos-teal)] transition-colors`}
+                placeholder="Parent/Guardian full name"
+              />
+              {errors.parentGuardianName && (
+                <p className="text-red-400 text-sm mt-1">{errors.parentGuardianName}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                Parent/Guardian Phone *
+              </label>
+              <input
+                type="tel"
+                value={formData.parentGuardianPhone}
+                onChange={(e) => handlePhoneChange("parentGuardianPhone", e.target.value)}
+                className={`w-full px-4 py-3 rounded-xl bg-white/5 border ${
+                  errors.parentGuardianPhone ? "border-red-500" : "border-white/10"
+                } text-white placeholder-white/40 focus:outline-none focus:border-[var(--sos-teal)] transition-colors`}
+                placeholder="(555) 123-4567"
+              />
+              {errors.parentGuardianPhone && (
+                <p className="text-red-400 text-sm mt-1">{errors.parentGuardianPhone}</p>
+              )}
+            </div>
+          </>
+        )}
 
         {/* Waiver Agreement */}
         <div className="md:col-span-2">
@@ -527,7 +630,11 @@ export function RegistrationForm() {
             Electronic Signature and Date *
           </label>
           <p className="text-xs text-[var(--foreground-muted)] mb-2">
-            Type your full name in ALL CAPS followed by today&apos;s date. Example: <span className="text-white font-mono">JOHN DOE - 01/25/2026</span>
+            {expectedSignature ? (
+              <>Type exactly: <span className="text-white font-mono">{expectedSignature}</span></>
+            ) : (
+              <>Enter your first and last name above, then type your full name in ALL CAPS followed by today&apos;s date.</>
+            )}
           </p>
           <input
             type="text"
@@ -536,7 +643,7 @@ export function RegistrationForm() {
             className={`w-full px-4 py-3 rounded-xl bg-white/5 border ${
               errors.electronicSignature ? "border-red-500" : "border-white/10"
             } text-white placeholder-white/40 focus:outline-none focus:border-[var(--sos-teal)] transition-colors uppercase`}
-            placeholder="FIRSTNAME LASTNAME - MM/DD/YYYY"
+            placeholder={expectedSignature || "FIRSTNAME LASTNAME - MM/DD/YYYY"}
           />
           {errors.electronicSignature && (
             <p className="text-red-400 text-sm mt-1">{errors.electronicSignature}</p>

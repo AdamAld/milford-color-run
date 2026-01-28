@@ -1,82 +1,164 @@
 import { NextRequest, NextResponse } from "next/server";
+import { google } from "googleapis";
 
-// Google Forms URL - use the /e/ format for public form submissions
-const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfI8qwePgrultQSuoFpbJ8bPMB1Qp1IQaAu0mcb0lEWqhjFCw/formResponse";
+const SHEET_ID = process.env.GOOGLE_SHEET_ID!;
+const SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL!;
+const PRIVATE_KEY = (process.env.GOOGLE_PRIVATE_KEY || "").replace(/\\n/g, "\n");
 
-const ENTRY_IDS = {
-  firstName: "entry.826355120",
-  lastName: "entry.107270862",
-  email: "entry.1149713456",
-  dateOfBirth: "entry.245385898",
-  phone: "entry.1212825914",
-  emergencyContactName: "entry.1290620365",
-  emergencyContactPhone: "entry.476526749",
-  waiverAgreed: "entry.2027581858",
-  entryFeePayment: "entry.1654569682",
-  tshirtSize: "entry.1395051602",
-  parentGuardianInfo: "entry.607093130",
-  electronicSignature: "entry.598148220",
-};
+// Event date used for age calculation
+const EVENT_DATE = new Date("2026-03-22");
+
+function getAge(dob: string): number {
+  const birth = new Date(dob);
+  let age = EVENT_DATE.getFullYear() - birth.getFullYear();
+  const m = EVENT_DATE.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && EVENT_DATE.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+function sanitize(value: unknown, maxLen = 500): string {
+  if (typeof value !== "string") return "";
+  return value.trim().slice(0, maxLen);
+}
+
+function formatPhoneDigits(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  if (digits.length !== 10) return digits;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    console.log("Registration request received:", JSON.stringify(body, null, 2));
+    // Sanitize inputs
+    const firstName = sanitize(body.firstName, 100);
+    const lastName = sanitize(body.lastName, 100);
+    const email = sanitize(body.email, 200);
+    const dateOfBirth = sanitize(body.dateOfBirth, 10);
+    const phone = sanitize(body.phone, 20);
+    const tshirtSize = sanitize(body.tshirtSize, 10);
+    const entryFeePayment = sanitize(body.entryFeePayment, 100);
+    const emergencyContactName = sanitize(body.emergencyContactName, 100);
+    const emergencyContactPhone = sanitize(body.emergencyContactPhone, 20);
+    const parentGuardianName = sanitize(body.parentGuardianName, 100);
+    const parentGuardianPhone = sanitize(body.parentGuardianPhone, 20);
+    const electronicSignature = sanitize(body.electronicSignature, 200);
+    const waiverAgreed = body.waiverAgreed === true;
 
-    // Build URL-encoded form data
-    const formData = new URLSearchParams();
-    formData.append(ENTRY_IDS.firstName, body.firstName || "");
-    formData.append(ENTRY_IDS.lastName, body.lastName || "");
-    formData.append(ENTRY_IDS.email, body.email || "");
-    formData.append(ENTRY_IDS.dateOfBirth, body.dateOfBirth || "");
-    formData.append(ENTRY_IDS.phone, body.phone || "");
-    formData.append(ENTRY_IDS.emergencyContactName, body.emergencyContactName || "");
-    formData.append(ENTRY_IDS.emergencyContactPhone, body.emergencyContactPhone || "");
-    formData.append(ENTRY_IDS.tshirtSize, body.tshirtSize || "");
-    formData.append(ENTRY_IDS.parentGuardianInfo, body.parentGuardianInfo || "N/A");
-    formData.append(ENTRY_IDS.entryFeePayment, body.entryFeePayment || "");
-    formData.append(ENTRY_IDS.electronicSignature, body.electronicSignature || "");
-    // Waiver expects "Yes" not "I agree"
-    formData.append(ENTRY_IDS.waiverAgreed, body.waiverAgreed ? "Yes" : "");
+    // Validate required fields
+    const required: Record<string, string> = {
+      firstName,
+      lastName,
+      email,
+      dateOfBirth,
+      emergencyContactName,
+      emergencyContactPhone,
+      electronicSignature,
+      tshirtSize,
+    };
+    const missing = Object.entries(required)
+      .filter(([, v]) => !v)
+      .map(([k]) => k);
 
-    console.log("Submitting to Google Forms:", formData.toString());
-
-    const response = await fetch(GOOGLE_FORM_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: formData.toString(),
-    });
-
-    console.log("Google Forms response status:", response.status);
-
-    // Get the response body to check for success confirmation
-    const responseText = await response.text();
-
-    // Google Forms may return 400 status but still process the submission successfully
-    // We need to check the response body for the confirmation message
-    const isSuccess =
-      response.ok ||
-      response.status === 302 ||
-      responseText.includes("We have received your registration") ||
-      responseText.includes("Your response has been recorded") ||
-      responseText.includes("freebirdFormviewerViewResponseConfirmationMessage");
-
-    if (isSuccess) {
-      console.log("Google Forms submission successful");
-      return NextResponse.json({ success: true });
+    if (missing.length > 0 || !waiverAgreed) {
+      return NextResponse.json(
+        { success: false, error: `Missing required fields: ${[...missing, ...(!waiverAgreed ? ["waiverAgreed"] : [])].join(", ")}` },
+        { status: 400 }
+      );
     }
 
-    // Log the error for debugging
-    console.error("Google Forms error:", response.status);
-    console.error("Error response:", responseText.substring(0, 1000));
+    // Email format check
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid email format" },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json(
-      { success: false, error: "Form submission failed. Please try again." },
-      { status: 500 }
-    );
+    // Payment method validation
+    if (entryFeePayment !== "VENMO" && entryFeePayment !== "CASH") {
+      return NextResponse.json(
+        { success: false, error: "Invalid payment method" },
+        { status: 400 }
+      );
+    }
+
+    // Phone validation: required phones must be 10 digits, optional phone validated if present
+    const ecPhoneDigits = emergencyContactPhone.replace(/\D/g, "");
+    if (ecPhoneDigits.length !== 10) {
+      return NextResponse.json(
+        { success: false, error: "Emergency contact phone must be 10 digits" },
+        { status: 400 }
+      );
+    }
+    const phoneDigits = phone.replace(/\D/g, "");
+    if (phone && phoneDigits.length !== 10) {
+      return NextResponse.json(
+        { success: false, error: "Phone number must be 10 digits" },
+        { status: 400 }
+      );
+    }
+
+    // Age-based validation
+    const age = getAge(dateOfBirth);
+    if (age < 18) {
+      if (!parentGuardianName || !parentGuardianPhone) {
+        return NextResponse.json(
+          { success: false, error: "Parent/guardian name and phone are required for participants under 18" },
+          { status: 400 }
+        );
+      }
+      const pgPhoneDigits = parentGuardianPhone.replace(/\D/g, "");
+      if (pgPhoneDigits.length !== 10) {
+        return NextResponse.json(
+          { success: false, error: "Parent/guardian phone must be 10 digits" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Authenticate with Google Sheets API
+    const auth = new google.auth.JWT({
+      email: SERVICE_ACCOUNT_EMAIL,
+      key: PRIVATE_KEY,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+
+    const sheets = google.sheets({ version: "v4", auth });
+
+    const timestamp = new Date().toISOString();
+
+    // Append-only: we only ever call spreadsheets.values.append
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: SHEET_ID,
+      range: "Sheet1!A:N",
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [
+          [
+            timestamp,
+            firstName,
+            lastName,
+            email,
+            dateOfBirth,
+            phone ? formatPhoneDigits(phone) : "",
+            tshirtSize,
+            entryFeePayment,
+            emergencyContactName,
+            formatPhoneDigits(emergencyContactPhone),
+            parentGuardianName,
+            parentGuardianPhone ? formatPhoneDigits(parentGuardianPhone) : "",
+            electronicSignature,
+            waiverAgreed ? "Yes" : "No",
+          ],
+        ],
+      },
+    });
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Registration API error:", error);
     return NextResponse.json(
