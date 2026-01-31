@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, FormEvent, useEffect, useRef } from "react";
+import { useState, FormEvent, useEffect, useRef, useCallback } from "react";
 import { Send, Loader2, CheckCircle, AlertCircle, User, Mail, Phone, Shirt, Heart, Calendar, PenLine } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 interface FormData {
   firstName: string;
@@ -71,6 +72,7 @@ const TSHIRT_SIZE_LABELS: Record<string, string> = {
 
 export function RegistrationForm() {
   const formRef = useRef<HTMLDivElement>(null);
+  const hasTrackedStart = useRef(false);
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
@@ -203,6 +205,10 @@ export function RegistrationForm() {
       const result = await response.json();
 
       if (result.success) {
+        track("registration_form_submitted", {
+          payment_method: formData.entryFeePayment,
+          is_minor: isMinor,
+        });
         // Save payment method before resetting form
         setSubmittedPaymentMethod(formData.entryFeePayment);
         setSubmitStatus("success");
@@ -225,17 +231,27 @@ export function RegistrationForm() {
         });
       } else {
         console.error("Registration failed:", result.error);
+        track("registration_form_error", { error: result.error });
         setSubmitStatus("error");
       }
     } catch (error) {
       console.error("Registration error:", error);
+      track("registration_form_error", { error: String(error) });
       setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const trackFormStarted = useCallback(() => {
+    if (!hasTrackedStart.current) {
+      hasTrackedStart.current = true;
+      track("registration_form_started");
+    }
+  }, []);
+
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
+    trackFormStarted();
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {

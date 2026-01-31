@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { ChevronDown, MapPin, Clock, Calendar } from "lucide-react";
 import { CountdownTimer } from "./CountdownTimer";
 import { SOSWheelLogo } from "./SOSWheelLogo";
+import { track } from "@/lib/analytics";
 
 export function Hero() {
   const heroRef = useRef<HTMLElement>(null);
@@ -213,7 +214,10 @@ export function Hero() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in animation-delay-1200">
           <button
-            onClick={scrollToRegister}
+            onClick={() => {
+              track("cta_clicked", { location: "hero" });
+              scrollToRegister();
+            }}
             className="gradient-button px-8 py-4 rounded-full text-lg font-semibold text-white hover:scale-105 active:scale-95 transition-transform"
           >
             <span>Register Now</span>

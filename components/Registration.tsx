@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Check, ArrowRight, Users, Smartphone } from "lucide-react";
 import { RegistrationForm } from "./RegistrationForm";
+import { track } from "@/lib/analytics";
 
 const pricingTiers = [
   {
@@ -174,6 +175,7 @@ export function Registration() {
                 whileTap={{ scale: 0.98 }}
                 onClick={(e) => {
                   e.preventDefault();
+                  track("cta_clicked", { location: "pricing", tier: tier.name });
                   document.getElementById("registration-form")?.scrollIntoView({ behavior: "smooth" });
                 }}
               >
