@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Route Path Editor</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, sans-serif; }
+#map { width: 100vw; height: 100vh; }
+#panel {
+  position: fixed; top: 10px; right: 10px; background: white; padding: 16px;
+  border-radius: 10px; font-size: 13px; z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3); width: 340px; max-height: 94vh;
+  display: flex; flex-direction: column;
+}
+#panel h3 { margin: 0 0 8px; font-size: 15px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.toolbar button {
+  padding: 7px 11px; cursor: pointer; border: 1px solid #ccc;
+  border-radius: 5px; font-size: 12px; background: #f8f8f8;
+}
+.toolbar button:hover { background: #e8e8e8; }
+.toolbar button.active { background: #2196F3; color: white; border-color: #2196F3; }
+.toolbar button.danger { background: #f44336; color: white; border-color: #f44336; }
+#pointList {
+  flex: 1; overflow-y: auto; margin: 8px 0; border: 1px solid #ddd;
+  border-radius: 6px; max-height: 45vh;
+}
+#pointList table { width: 100%; border-collapse: collapse; font-size: 11px; }
+#pointList th { background: #f0f0f0; padding: 4px 6px; position: sticky; top: 0; text-align: left; }
+#pointList td { padding: 3px 6px; border-top: 1px solid #eee; font-family: monospace; }
+#pointList tr:hover { background: #e3f2fd; }
+#pointList tr.selected { background: #bbdefb; }
+#pointList .del-btn { cursor: pointer; color: #f44336; font-weight: bold; padding: 0 4px; }
+#pointList .del-btn:hover { background: #f44336; color: white; border-radius: 3px; }
+#output {
+  margin-top: 8px; padding: 8px; background: #f5f5f5; border-radius: 5px;
+  font-family: monospace; font-size: 9px; white-space: pre-wrap;
+  max-height: 160px; overflow-y: auto; word-break: break-all;
+}
+.info { color: #888; font-size: 11px; margin: 2px 0; }
+.coord-display {
+  position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.8); color: #0f0; padding: 6px 14px;
+  border-radius: 6px; font-family: monospace; font-size: 13px; z-index: 1000;
+}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="coord-display" id="coordDisplay">Move mouse over map</div>
+<div id="panel">
+  <h3>Route Path Editor</h3>
+  <p class="info"><b>Click map</b> to add points. Drag markers to move. Points list below is live.</p>
+  <div class="toolbar">
+    <button onclick="toggleLayer()">🗺️ Satellite</button>
+    <button onclick="toggleDraw()" id="drawBtn">✏️ Draw Mode</button>
+    <button onclick="clearAll()" class="danger">🗑️ Clear All</button>
+    <button onclick="undoLast()">↩ Undo</button>
+    <button onclick="exportCoords()">📋 Export</button>
+  </div>
+  <div id="pointList">
+    <table>
+      <thead><tr><th>#</th><th>Lat</th><th>Lng</th><th></th></tr></thead>
+      <tbody id="pointBody"></tbody>
+    </table>
+  </div>
+  <div id="output">Click Export to get coordinate array.</div>
+</div>
+<script>
+const map = L.map('map').setView([39.1880, -84.2010], 16);
+
+const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Esri', maxZoom: 19
+});
+const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: 'CARTO', subdomains: 'abcd', maxZoom: 20
+}).addTo(map);
+let isSat = false;
+function toggleLayer() {
+  if (isSat) { map.removeLayer(satellite); dark.addTo(map); }
+  else { map.removeLayer(dark); satellite.addTo(map); }
+  isSat = !isSat;
+}
+
+// Show coordinates on mouse move
+map.on('mousemove', function(e) {
+  document.getElementById('coordDisplay').textContent =
+    `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+});
+
+// All points
+let points = [];
+let markers = [];
+let polyline = null;
+let drawMode = true; // start in draw mode
+
+function toggleDraw() {
+  drawMode = !drawMode;
+  document.getElementById('drawBtn').classList.toggle('active', drawMode);
+  map.getContainer().style.cursor = drawMode ? 'crosshair' : '';
+}
+// Start with draw mode active
+document.getElementById('drawBtn').classList.add('active');
+map.getContainer().style.cursor = 'crosshair';
+
+// Click map to add point
+map.on('click', function(e) {
+  if (!drawMode) return;
+  points.push([e.latlng.lat, e.latlng.lng]);
+  redraw();
+});
+
+function redraw() {
+  // Clear old markers
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  if (polyline) map.removeLayer(polyline);
+
+  // Draw polyline
+  if (points.length > 1) {
+    polyline = L.polyline(points, {color: '#ff2222', weight: 4, opacity: 0.9}).addTo(map);
+  }
+
+  // Draw markers
+  points.forEach((coord, i) => {
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="
+        width:20px; height:20px; background:#ff2222; border:2px solid white;
+        border-radius:50%; cursor:grab; display:flex; align-items:center;
+        justify-content:center; font-size:9px; font-weight:bold; color:white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.5); line-height:20px;
+      ">${i}</div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+    });
+
+    const marker = L.marker(coord, { draggable: true, icon }).addTo(map);
+    marker.on('dragend', function(e) {
+      const pos = e.target.getLatLng();
+      points[i] = [pos.lat, pos.lng];
+      redraw();
+    });
+    markers.push(marker);
+  });
+
+  // Update point list table
+  const tbody = document.getElementById('pointBody');
+  tbody.innerHTML = points.map((p, i) =>
+    `<tr onclick="panTo(${i})">
+      <td>${i}</td>
+      <td>${p[0].toFixed(6)}</td>
+      <td>${p[1].toFixed(6)}</td>
+      <td><span class="del-btn" onclick="event.stopPropagation(); delPoint(${i})">✕</span></td>
+    </tr>`
+  ).join('');
+}
+
+function delPoint(i) {
+  points.splice(i, 1);
+  redraw();
+}
+
+function panTo(i) {
+  if (points[i]) map.panTo(points[i]);
+}
+
+function clearAll() {
+  if (points.length === 0 || confirm('Clear all points?')) {
+    points = [];
+    redraw();
+  }
+}
+
+function undoLast() {
+  points.pop();
+  redraw();
+}
+
+function exportCoords() {
+  if (points.length === 0) {
+    document.getElementById('output').textContent = 'No points to export.';
+    return;
+  }
+  const lines = points.map(p => `  [${p[0].toFixed(6)}, ${p[1].toFixed(6)}],`).join('\n');
+  const code = `[\n${lines}\n]`;
+  document.getElementById('output').textContent = code;
+  navigator.clipboard.writeText(code).then(() => {
+    document.getElementById('output').textContent += '\n\n✅ Copied to clipboard!';
+  }).catch(() => {});
+}
+
+// Draw the existing full route as a reference (thin blue)
+const existingRoute = [
+  [39.186930, -84.199404],[39.186907, -84.199618],[39.187912, -84.199513],
+  [39.189136, -84.199387],[39.189171, -84.199303],[39.189244, -84.199356],
+  [39.189275, -84.199412],[39.189288, -84.199498],[39.189300, -84.200453],
+  [39.189483, -84.204423],[39.189466, -84.204514],[39.189442, -84.204567],
+  [39.189285, -84.204572],[39.189381, -84.204927],[39.189394, -84.205125],
+  [39.189377, -84.205270],[39.189334, -84.205333],[39.189219, -84.205420],
+  [39.188362, -84.205559],[39.188229, -84.205559],[39.188171, -84.205506],
+  [39.188121, -84.205398],[39.188113, -84.205130],[39.188079, -84.205001],
+  [39.187996, -84.204916],[39.187580, -84.204776],[39.187323, -84.204722],
+  [39.187106, -84.204679],[39.186849, -84.204594],[39.186433, -84.204401],
+  [39.186358, -84.204401],[39.186193, -84.204432],[39.186075, -84.204454],
+  [39.185992, -84.204444],[39.185959, -84.204358],[39.185934, -84.204283],
+  [39.185758, -84.201304],[39.185722, -84.200601],[39.185643, -84.199828],
+  [39.185636, -84.199742],[39.185616, -84.199466],[39.185599, -84.199004],
+  [39.185589, -84.198910],[39.185587, -84.198747],[39.185581, -84.198615],
+  [39.185575, -84.198478],[39.185568, -84.198363],[39.185556, -84.198151],
+  [39.185545, -84.197902],[39.185604, -84.197709],[39.185708, -84.197593],
+  [39.185909, -84.197489],[39.186117, -84.197475],[39.186248, -84.197454],
+  [39.186385, -84.197443],[39.186570, -84.197416],[39.186739, -84.197395],
+  [39.187210, -84.197336],[39.187755, -84.197274],[39.188589, -84.197175],
+  [39.188747, -84.197163],[39.188998, -84.197139],[39.189051, -84.197207],
+  [39.189050, -84.197200],[39.189100, -84.197400],[39.189150, -84.197800],
+  [39.189180, -84.198400],[39.189200, -84.199000],[39.189180, -84.199210],
+  [39.189136, -84.199387],[39.187912, -84.199513],[39.186907, -84.199618],
+  [39.186908, -84.199125],
+];
+L.polyline(existingRoute, {color: '#4488ff', weight: 3, opacity: 0.5}).addTo(map);
+
+// Mark points 17 and 18 (the gap for the missing segment) with special markers
+L.circleMarker([39.189219, -84.205420], {radius: 8, color: '#ff0', fillColor: '#ff0', fillOpacity: 1})
+  .bindTooltip('Point 17 (before gap)', {permanent: true, direction: 'top'}).addTo(map);
+L.circleMarker([39.188362, -84.205559], {radius: 8, color: '#ff0', fillColor: '#ff0', fillOpacity: 1})
+  .bindTooltip('Point 18 (after gap)', {permanent: true, direction: 'bottom'}).addTo(map);
+
+redraw();
+</script>
+</body>
+</html>

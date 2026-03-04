@@ -41,12 +41,21 @@ export const metadata: Metadata = {
     siteName: "Milford Color Run 5K",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Milford Sources of Strength Color Run 5K - May 2, 2026",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Milford Sources of Strength Color Run 5K",
     description:
       "Run for strength, celebrate in color! Join us May 2, 2026 at Miami Meadows Park.",
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,

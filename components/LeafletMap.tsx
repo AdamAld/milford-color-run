@@ -124,82 +124,82 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
     }).addTo(map);
     glowLine.bringToBack();
 
-    // Add POI markers with custom icons
-    pointsOfInterest.forEach((poi) => {
-      const customIcon = createCustomIcon(poi.type, poi.color, poi.priority);
+    // // Add POI markers with custom icons
+    // pointsOfInterest.forEach((poi) => {
+    //   const customIcon = createCustomIcon(poi.type, poi.color, poi.priority);
+    //
+    //   const marker = L.marker([poi.lat, poi.lng], {
+    //     icon: customIcon,
+    //   }).addTo(map);
+    //
+    //   // Create custom popup
+    //   const popupContent = `
+    //     <div style="
+    //       background: rgba(15, 15, 20, 0.95);
+    //       border: 1px solid ${poi.color}40;
+    //       border-radius: 12px;
+    //       padding: 12px 16px;
+    //       min-width: 180px;
+    //       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    //     ">
+    //       <div style="
+    //         display: flex;
+    //         align-items: center;
+    //         gap: 8px;
+    //         margin-bottom: 6px;
+    //       ">
+    //         <div style="
+    //           width: 24px;
+    //           height: 24px;
+    //           display: flex;
+    //           align-items: center;
+    //           justify-content: center;
+    //         ">
+    //           ${getIconSVG(poi.type, poi.color)}
+    //         </div>
+    //         <strong style="color: white; font-size: 14px;">${poi.label}</strong>
+    //       </div>
+    //       <p style="color: #9ca3af; font-size: 12px; margin: 0;">${poi.description}</p>
+    //     </div>
+    //   `;
+    //
+    //   marker.bindPopup(popupContent, {
+    //     closeButton: false,
+    //     className: "custom-popup",
+    //     offset: [0, -5],
+    //   });
+    //
+    //   marker.on("mouseover", () => {
+    //     marker.openPopup();
+    //     onPOISelect(poi.id);
+    //   });
+    //
+    //   marker.on("mouseout", () => {
+    //     marker.closePopup();
+    //     onPOISelect(null);
+    //   });
+    //
+    //   marker.on("click", () => {
+    //     marker.openPopup();
+    //     onPOISelect(poi.id);
+    //   });
+    //
+    //   markersRef.current.set(poi.id, marker);
+    // });
 
-      const marker = L.marker([poi.lat, poi.lng], {
-        icon: customIcon,
-      }).addTo(map);
-
-      // Create custom popup
-      const popupContent = `
-        <div style="
-          background: rgba(15, 15, 20, 0.95);
-          border: 1px solid ${poi.color}40;
-          border-radius: 12px;
-          padding: 12px 16px;
-          min-width: 180px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        ">
-          <div style="
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-          ">
-            <div style="
-              width: 24px;
-              height: 24px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            ">
-              ${getIconSVG(poi.type, poi.color)}
-            </div>
-            <strong style="color: white; font-size: 14px;">${poi.label}</strong>
-          </div>
-          <p style="color: #9ca3af; font-size: 12px; margin: 0;">${poi.description}</p>
-        </div>
-      `;
-
-      marker.bindPopup(popupContent, {
-        closeButton: false,
-        className: "custom-popup",
-        offset: [0, -5],
-      });
-
-      marker.on("mouseover", () => {
-        marker.openPopup();
-        onPOISelect(poi.id);
-      });
-
-      marker.on("mouseout", () => {
-        marker.closePopup();
-        onPOISelect(null);
-      });
-
-      marker.on("click", () => {
-        marker.openPopup();
-        onPOISelect(poi.id);
-      });
-
-      markersRef.current.set(poi.id, marker);
-    });
-
-    // Add pulsing effect for start marker
-    const startPOI = pointsOfInterest.find((p) => p.id === "start");
-    if (startPOI) {
-      L.circleMarker([startPOI.lat, startPOI.lng], {
-        radius: 25,
-        fillColor: startPOI.color,
-        color: startPOI.color,
-        weight: 2,
-        opacity: 0.5,
-        fillOpacity: 0.1,
-        className: "pulse-marker",
-      }).addTo(map);
-    }
+    // // Add pulsing effect for start marker
+    // const startPOI = pointsOfInterest.find((p) => p.id === "start");
+    // if (startPOI) {
+    //   L.circleMarker([startPOI.lat, startPOI.lng], {
+    //     radius: 25,
+    //     fillColor: startPOI.color,
+    //     color: startPOI.color,
+    //     weight: 2,
+    //     opacity: 0.5,
+    //     fillOpacity: 0.1,
+    //     className: "pulse-marker",
+    //   }).addTo(map);
+    // }
 
     setIsMapReady(true);
 
