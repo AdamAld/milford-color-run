@@ -32,12 +32,25 @@ export const metadata: Metadata = {
     "Ohio",
   ],
   authors: [{ name: "Milford High School Sources of Strength" }],
+  metadataBase: new URL("https://colorforstrength.com"),
   openGraph: {
     title: "Milford Sources of Strength Color Run 5K",
     description:
       "Run for strength, celebrate in color! Join us May 2, 2026 at Miami Meadows Park.",
+    url: "https://colorforstrength.com",
+    siteName: "Milford Color Run 5K",
     type: "website",
     locale: "en_US",
+  },
+  twitter: {
+    card: "summary",
+    title: "Milford Sources of Strength Color Run 5K",
+    description:
+      "Run for strength, celebrate in color! Join us May 2, 2026 at Miami Meadows Park.",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

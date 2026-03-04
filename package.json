@@ -21,7 +21,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-leaflet": "^5.0.0",
-    "vercel": "^50.9.6"
+    "vercel": "^50.26.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
