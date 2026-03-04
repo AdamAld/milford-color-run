@@ -11,12 +11,11 @@ const pricingTiers = [
     name: "Early Bird",
     price: "$20",
     deadline: "Ends April 1, 2026",
-    description: "Best value - register early!",
+    description: "Includes your event t-shirt!",
     features: [
       "Event t-shirt",
       "Color powder packets",
       "Post-race celebration access",
-      "Commemorative bib number",
     ],
     popular: true,
     color: "var(--sos-teal)",
@@ -25,12 +24,11 @@ const pricingTiers = [
     name: "Regular",
     price: "$25",
     deadline: "April 2 - May 1, 2026",
-    description: "Standard registration",
+    description: "T-shirts not available after April 1",
     features: [
-      "Event t-shirt",
       "Color powder packets",
       "Post-race celebration access",
-      "Commemorative bib number",
+      "No t-shirt included",
     ],
     popular: false,
     color: "var(--sos-purple)",
@@ -104,6 +102,20 @@ export function Registration() {
             Secure your spot and join hundreds of students, families, and
             community members for the most colorful event of the year!
           </p>
+        </motion.div>
+
+        {/* Early Bird Urgency Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.15, duration: 0.5 }}
+          className="max-w-4xl mx-auto mb-8"
+        >
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-6 py-4 text-center">
+            <p className="text-amber-400 font-semibold">
+              Register by April 1 to guarantee your event t-shirt! T-shirts are not available with regular registration.
+            </p>
+          </div>
         </motion.div>
 
         {/* Pricing Cards */}

@@ -46,7 +46,7 @@ export function Footer() {
               </h3>
               <p className="text-[var(--foreground-muted)] mb-6 leading-relaxed">
                 A student-led initiative by Milford High School&apos;s Sources
-                of Strength chapter, spreading hope and celebrating community
+                of Strength, spreading hope and celebrating community
                 through color.
               </p>
               {/* Social Links */}

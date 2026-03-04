@@ -16,6 +16,11 @@ const faqs = [
       "No, this is not a timed competitive race. It's a fun run/walk where the goal is to have fun, celebrate community, and get colorful! You can run, jog, walk, or skip—whatever makes you happy.",
   },
   {
+    question: "Will there be bib numbers?",
+    answer:
+      "No, bib numbers will not be distributed. This is an untimed fun run — just check in at the registration table on event morning and enjoy the run!",
+  },
+  {
     question: "Is the color powder safe?",
     answer:
       "Yes! The color powder is made from food-grade cornstarch and FDA-approved dyes. It's non-toxic, biodegradable, and washes out of clothes and off skin easily with water. However, if you have respiratory sensitivities, we recommend wearing a bandana over your nose and mouth.",
@@ -43,7 +48,7 @@ const faqs = [
   {
     question: "What's included in my registration?",
     answer:
-      "Your registration includes an event t-shirt, color powder packets, access to the post-race celebration, and a commemorative bib number. Water and light refreshments will be available at the finish line.",
+      "Early Bird registration ($20, before April 1) includes an event t-shirt, color powder packets, and access to the post-race celebration. Regular registration ($25, April 2–May 1) includes color powder and celebration access but does NOT include a t-shirt. T-shirts are exclusive to Early Bird registrants and cannot be purchased separately.",
   },
   {
     question: "Can I get a refund if I can't attend?",
@@ -51,9 +56,9 @@ const faqs = [
       "Registrations are non-refundable, but you can transfer your registration to another person. Please email us at gray_c@milfordschools.org to arrange a transfer.",
   },
   {
-    question: "How do I pick up my race packet?",
+    question: "How do I get my t-shirt and supplies?",
     answer:
-      "Race packet pickup details will be sent via email to all registered participants. Options will include pickup at Milford High School the day before the event, or on-site the morning of the race starting at 8:30 AM.",
+      "T-shirts (Early Bird registrants only) and color powder packets will be distributed the morning of the race at the registration area starting at 9:00 AM. Please arrive early to check in and pick up your materials before the 10:00 AM start. Note: t-shirts are only available with Early Bird registration (before April 1) and cannot be purchased separately.",
   },
 ];
 

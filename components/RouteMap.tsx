@@ -11,7 +11,7 @@ import {
   Utensils,
   Droplets,
   Camera,
-  Bath,
+  Bath, Dog,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -29,71 +29,160 @@ const LeafletMap = dynamic(() => import("./LeafletMap"), {
 });
 
 // Miami Meadows Park coordinates (from OpenStreetMap)
-// Lake location: 39.187558, -84.202223
 export const PARK_CENTER = {
-  lat: 39.1876,
-  lng: -84.2022,
+  lat: 39.1885,
+  lng: -84.2030,
 };
 
-// 5K Route coordinates based on actual Miami Meadows 5K course
-// Start/Finish near Miami Meadows Playground on east side
-// Route: East start -> South -> West along south edge -> North on west side ->
-//        East along north (past Bark Park) -> South back to start
+// 5K Route coordinates sourced from OpenStreetMap Overpass API + calculated grass segments.
+// Route: Start near playground → North on service road (Way 32542887) → West along
+//        north edge (Way 220206682) → Lake loop (Way 717834401 NW corner → south → east) →
+//        East across fields (grass) → North along east boundary (grass) → South on
+//        service road back to Finish.
 export const routeCoordinates: [number, number][] = [
-  // Start/Finish - East side near Miami Meadows Playground
-  [39.1858, -84.1970], // Start/Finish near playground
+  // === START (user-provided GPS) ===
+  [39.186930, -84.199404],
 
-  // Head south then west along south edge (Mile 1 - red)
-  [39.1850, -84.1975], // South from start
-  [39.1845, -84.1990], // Continue southwest
-  [39.1842, -84.2010], // South edge
-  [39.1840, -84.2030], // Continue west
-  [39.1842, -84.2050], // Southwest corner
+  // === Phase 1: North on west service road (Way 32542887) to Bark Park ===
+  [39.186907, -84.199618],
+  [39.1879123, -84.199513],
+  [39.1891363, -84.1993869],
 
-  // North along west side - Wade Rd area (Mile 2 - blue)
-  [39.1855, -84.2060], // West side heading north
-  [39.1870, -84.2065], // Continue north along west
-  [39.1885, -84.2060], // Northwest area near lake
-  [39.1895, -84.2050], // Continue north
+  // === Phase 2: West across north edge (Way 220206682) ===
+  [39.1891706, -84.1993029],
+  [39.1892442, -84.1993560],
+  [39.1892752, -84.1994121],
+  [39.1892876, -84.1994979],
+  [39.1893001, -84.2004528],
+  [39.1894830, -84.2044225],
+  [39.1894664, -84.2045136],
+  [39.1894415, -84.2045673],
+  [39.1892854, -84.2045718],
 
-  // East along north edge past Bark Park (Mile 3 - yellow)
-  [39.1905, -84.2035], // North side
-  [39.1908, -84.2015], // Continue east on north edge
-  [39.1905, -84.1995], // Near Bark Park
-  [39.1898, -84.1980], // Northeast area
+  // === Phase 3: Lake loop — NW corner (Way 717834401 indices 25→22) ===
+  [39.1893812, -84.2049272],
+  [39.1893945, -84.2051249],
+  [39.1893766, -84.2052700],
+  [39.1893340, -84.2053334],
 
-  // South on east side back to start (Final stretch)
-  [39.1888, -84.1970], // East side heading south
-  [39.1875, -84.1968], // Continue south
-  [39.1865, -84.1968], // Near finish
-  [39.1858, -84.1970], // Return to Start/Finish
+  // === Lake loop — South along west side (Way 717834401 indices 21→10) ===
+  [39.1892186, -84.2054198],
+  [39.1883621, -84.2055593],
+  [39.1882290, -84.2055593],
+  [39.1881708, -84.2055056],
+  [39.1881209, -84.2053984],
+  [39.1881126, -84.2051301],
+  [39.1880793, -84.2050014],
+  [39.1879962, -84.2049156],
+  [39.1875804, -84.2047761],
+  [39.1873226, -84.2047224],
+  [39.1871064, -84.2046795],
+  [39.1868486, -84.2045937],
+
+  // === Lake loop — East along south edge (Way 717834401 indices 9→0) ===
+  [39.1864328, -84.2044006],
+  [39.1863580, -84.2044006],
+  [39.1861928, -84.2044319],
+  [39.1860752, -84.2044542],
+  [39.1859917, -84.2044442],
+  [39.1859588, -84.2043577],
+  [39.1859339, -84.2042826],
+  [39.1857578, -84.2013044],
+  [39.1857225, -84.2006014],
+  [39.1856426, -84.1998278],
+
+  // === Phase 4: South along west service road to park bottom (Way 32542887) ===
+  [39.1856364, -84.1997415],
+  [39.1855670, -84.1997482],
+  [39.1853374, -84.1997686],
+  [39.1845041, -84.1998426],
+  [39.1840470, -84.1998831],
+  [39.1836931, -84.1999146],
+  [39.1835575, -84.1999266],
+
+  // === Phase 5: East along south boundary (grass — calculated from park boundary) ===
+  [39.1835500, -84.1995000],
+  [39.1835400, -84.1990000],
+  [39.1835300, -84.1985000],
+  [39.1834300, -84.1978700],
+  [39.1833500, -84.1975000],
+  [39.1832900, -84.1971100],
+
+  // === Phase 6: North along east boundary (grass — calculated from park/street boundary) ===
+  // Following near Parkview Ln / eastern park edge
+  [39.1842600, -84.1970100],
+  [39.1849500, -84.1969500],
+  [39.1850200, -84.1969600],
+  [39.1850800, -84.1970000],
+  [39.1853800, -84.1972500],
+  [39.1855300, -84.1973100],
+  [39.1859100, -84.1974900],
+  [39.1862700, -84.1971100],
+  [39.1870400, -84.1962900],
+  [39.1871300, -84.1962100],
+  [39.1871900, -84.1961700],
+  [39.1872400, -84.1961600],
+  [39.1872800, -84.1961700],
+  [39.1873200, -84.1962000],
+  [39.1873700, -84.1962400],
+  [39.1877700, -84.1968800],
+  [39.1877800, -84.1970400],
+
+  // === Phase 7: Continue north to Deerwoods Dr area ===
+  // Following near Deerwoods Dr / park NE boundary
+  [39.1878400, -84.1972800],
+  [39.1889100, -84.1971400],
+  [39.1890000, -84.1971500],
+  [39.1890900, -84.1972700],
+  [39.1891100, -84.1976300],
+  [39.1891300, -84.1979700],
+  [39.1891800, -84.1992100],
+  [39.1891700, -84.1993000],
+  [39.1891363, -84.1993869],
+
+  // === Phase 8: South on west service road back to finish (Way 32542887) ===
+  [39.1879123, -84.199513],
+  [39.186907, -84.199618],
+
+  // === FINISH (user-provided GPS) ===
+  [39.186908, -84.199125],
 ];
 
 // POI Types for distinct icons
 export type POIType = "start" | "parking" | "registration" | "restrooms" | "food" | "photo" | "station" | "nature" | "water";
 
-// Points of Interest - positioned based on actual Miami Meadows 5K course
-// Start/Finish near Miami Meadows Playground on east side
+// Points of Interest — positioned on the actual OSM trail coordinates
 export const pointsOfInterest = [
   {
     id: "start",
     type: "start" as POIType,
     icon: Flag,
-    label: "Start/Finish",
+    label: "Start",
     description: "Miami Meadows Playground area",
-    lat: 39.1858,
-    lng: -84.1970, // East side near playground
-    color: "#39B54A", // SOS Green (Mentors)
+    lat: 39.186930,
+    lng: -84.199404,
+    color: "#39B54A",
     priority: 1,
   },
+  // {
+  //   id: "finish",
+  //   type: "finish" as POIType,
+  //   icon: Flag,
+  //   label: "Finish",
+  //   description: "Miami Meadows Playground area",
+  //   lat: 39.186930,
+  //   lng: -84.199404,
+  //   color: "#b53939",
+  //   priority: 1,
+  // },
   {
     id: "parking",
     type: "parking" as POIType,
     icon: Car,
     label: "Parking",
     description: "Main parking area",
-    lat: 39.1855,
-    lng: -84.1965, // Near playground
+    lat: 39.1865,
+    lng: -84.1996,
     color: "#6B7280",
     priority: 2,
   },
@@ -103,9 +192,9 @@ export const pointsOfInterest = [
     icon: MapPin,
     label: "Registration",
     description: "Check-in booth",
-    lat: 39.1862,
-    lng: -84.1972, // Near start
-    color: "#29ABE2", // SOS Blue (Healthy Activities)
+    lat: 39.1871,
+    lng: -84.1996,
+    color: "#29ABE2",
     priority: 1,
   },
   {
@@ -114,8 +203,8 @@ export const pointsOfInterest = [
     icon: Bath,
     label: "Restrooms",
     description: "Facilities available",
-    lat: 39.1852,
-    lng: -84.1968, // Near parking/playground
+    lat: 39.1863,
+    lng: -84.1996,
     color: "#6B7280",
     priority: 3,
   },
@@ -125,9 +214,9 @@ export const pointsOfInterest = [
     icon: Utensils,
     label: "Refreshments",
     description: "Water & snacks",
-    lat: 39.1860,
-    lng: -84.1965, // Near finish area
-    color: "#F26522", // SOS Orange (Family Support)
+    lat: 39.1867,
+    lng: -84.1993,
+    color: "#F26522",
     priority: 2,
   },
   {
@@ -136,21 +225,21 @@ export const pointsOfInterest = [
     icon: Camera,
     label: "Photo Zone",
     description: "Post-race photos",
-    lat: 39.1856,
-    lng: -84.1975, // Near finish
-    color: "#ED1C24", // SOS Red (Mental Health)
+    lat: 39.1868,
+    lng: -84.1990,
+    color: "#ED1C24",
     priority: 3,
   },
-  // 8 Color Stations distributed around the full 5K course
+  // 8 Color Stations distributed along the 5K route
   {
     id: "station1",
     type: "station" as POIType,
     icon: Droplets,
     label: "Station 1: Family Support",
     description: "Orange color powder",
-    lat: 39.1845,
-    lng: -84.2000, // Mile 1 area - south section
-    color: "#F26522", // Orange
+    lat: 39.1879123,
+    lng: -84.199513, // West side heading north
+    color: "#F26522",
     priority: 1,
   },
   {
@@ -159,9 +248,9 @@ export const pointsOfInterest = [
     icon: Droplets,
     label: "Station 2: Positive Friends",
     description: "Yellow color powder",
-    lat: 39.1842,
-    lng: -84.2040, // Southwest corner
-    color: "#FFC20E", // Yellow
+    lat: 39.1893001,
+    lng: -84.2004528, // North edge heading west
+    color: "#FFC20E",
     priority: 1,
   },
   {
@@ -170,9 +259,9 @@ export const pointsOfInterest = [
     icon: Droplets,
     label: "Station 3: Mentors",
     description: "Green color powder",
-    lat: 39.1865,
-    lng: -84.2062, // West side - Mile 2 area
-    color: "#39B54A", // Green
+    lat: 39.1882290,
+    lng: -84.2055593, // West side of lake
+    color: "#39B54A",
     priority: 1,
   },
   {
@@ -181,9 +270,9 @@ export const pointsOfInterest = [
     icon: Droplets,
     label: "Station 4: Healthy Activities",
     description: "Blue color powder",
-    lat: 39.1890,
-    lng: -84.2055, // Northwest near lake
-    color: "#29ABE2", // Blue
+    lat: 39.1864328,
+    lng: -84.2044006, // South-west of lake
+    color: "#29ABE2",
     priority: 1,
   },
   {
@@ -192,9 +281,9 @@ export const pointsOfInterest = [
     icon: Droplets,
     label: "Station 5: Generosity",
     description: "Gray color powder",
-    lat: 39.1905,
-    lng: -84.2025, // North side - Mile 3 area
-    color: "#808080", // Gray
+    lat: 39.1857578,
+    lng: -84.2013044, // South edge heading east
+    color: "#808080",
     priority: 1,
   },
   {
@@ -203,9 +292,9 @@ export const pointsOfInterest = [
     icon: Droplets,
     label: "Station 6: Spirituality",
     description: "Purple color powder",
-    lat: 39.1905,
-    lng: -84.1995, // North side near Bark Park
-    color: "#92278F", // Purple
+    lat: 39.1835400,
+    lng: -84.1985000, // South boundary of field loop
+    color: "#92278F",
     priority: 1,
   },
   {
@@ -214,9 +303,9 @@ export const pointsOfInterest = [
     icon: Droplets,
     label: "Station 7: Physical Health",
     description: "Light blue color powder",
-    lat: 39.1895,
-    lng: -84.1978, // Northeast area
-    color: "#87CEEB", // Light Blue
+    lat: 39.1862700,
+    lng: -84.1971100, // East boundary heading north
+    color: "#87CEEB",
     priority: 1,
   },
   {
@@ -225,20 +314,20 @@ export const pointsOfInterest = [
     icon: Droplets,
     label: "Station 8: Mental Health",
     description: "Red color powder",
-    lat: 39.1878,
-    lng: -84.1970, // East side near finish
-    color: "#ED1C24", // Red
+    lat: 39.1889100,
+    lng: -84.1971400, // NE corner heading back west
+    color: "#ED1C24",
     priority: 1,
   },
   {
     id: "barkpark",
     type: "nature" as POIType,
-    icon: TreePine,
+    icon: Dog,
     label: "Bark Park",
     description: "Dog park area",
-    lat: 39.1902,
-    lng: -84.1988, // Northeast area per reference map
-    color: "#39B54A", // Green
+    lat: 39.1895,
+    lng: -84.1988,
+    color: "#39B54A",
     priority: 2,
   },
   {
@@ -247,9 +336,9 @@ export const pointsOfInterest = [
     icon: Waves,
     label: "Miami Meadows Lake",
     description: "Scenic lake views",
-    lat: 39.1878,
-    lng: -84.2045, // Northwest area of park
-    color: "#29ABE2", // Blue
+    lat: 39.1873,
+    lng: -84.2040,
+    color: "#29ABE2",
     priority: 2,
   },
 ];

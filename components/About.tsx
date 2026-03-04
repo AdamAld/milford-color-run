@@ -87,7 +87,7 @@ export function About() {
             <span className="gradient-text">Fun Run</span>
           </h2>
           <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
-            Organized by Milford High School&apos;s Sources of Strength chapter,
+            Organized by Milford High School&apos;s Sources of Strength,
             this Color Run 5K is a student-led initiative to spread joy while
             raising awareness for mental health in our community.
           </p>

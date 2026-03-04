@@ -20,7 +20,7 @@ interface FormData {
   waiverAgreed: boolean;
 }
 
-const EVENT_DATE = new Date("2026-03-22");
+const EVENT_DATE = new Date("2026-05-02");
 
 function getAge(dob: string): number | null {
   if (!dob) return null;
@@ -92,7 +92,6 @@ export function RegistrationForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
-  const [submittedPaymentMethod, setSubmittedPaymentMethod] = useState<string>("");
 
   // Scroll to success message when form is submitted
   useEffect(() => {
@@ -209,8 +208,6 @@ export function RegistrationForm() {
           payment_method: formData.entryFeePayment,
           is_minor: isMinor,
         });
-        // Save payment method before resetting form
-        setSubmittedPaymentMethod(formData.entryFeePayment);
         setSubmitStatus("success");
 
         // Reset form after successful submission
@@ -272,8 +269,6 @@ export function RegistrationForm() {
     : "";
 
   if (submitStatus === "success") {
-    const isVenmoPayment = submittedPaymentMethod === "VENMO";
-
     return (
       <div ref={formRef} className="glass rounded-2xl p-8 md:p-10 text-center">
         <div className="w-20 h-20 rounded-full bg-green-500/20 mx-auto mb-6 flex items-center justify-center">
@@ -281,38 +276,18 @@ export function RegistrationForm() {
         </div>
         <h3 className="text-2xl font-bold text-white mb-4">Registration Submitted!</h3>
 
-        {isVenmoPayment ? (
-          <>
-            <p className="text-[var(--foreground-muted)] mb-6 max-w-md mx-auto">
-              Thank you for registering! Please complete your payment via Venmo to{" "}
-              <span className="text-[var(--sos-teal)] font-mono">@Carla-Rawlins</span>.
-              Include <span className="text-white font-semibold">SOS Color Run</span> and your name in the payment note.
-            </p>
-            <div className="glass rounded-xl px-6 py-4 mb-6 inline-block">
-              <p className="text-sm text-[var(--foreground-muted)]">Payment Amount</p>
-              <p className="text-2xl font-bold text-[var(--sos-teal)]">$25</p>
-            </div>
-            <p className="text-sm text-[var(--foreground-muted)] mb-6">
-              You&apos;ll receive a confirmation email once your payment is verified.
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="text-[var(--foreground-muted)] mb-4 max-w-md mx-auto">
-              Thank you for registering! You&apos;ve selected to pay with <span className="text-white font-semibold">cash at the event</span>.
-            </p>
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-6 py-4 mb-6 max-w-md mx-auto">
-              <p className="text-amber-400 font-semibold mb-1">Reminder: No T-Shirt Included</p>
-              <p className="text-sm text-amber-300/80">
-                Cash payments do not include an event t-shirt. To receive a t-shirt, please pay via Venmo before the event.
-              </p>
-            </div>
-            <div className="glass rounded-xl px-6 py-4 mb-6 inline-block">
-              <p className="text-sm text-[var(--foreground-muted)]">Cash Payment at Event</p>
-              <p className="text-2xl font-bold text-white">$25</p>
-            </div>
-          </>
-        )}
+        <p className="text-[var(--foreground-muted)] mb-6 max-w-md mx-auto">
+          Thank you for registering! Please complete your payment via Venmo to{" "}
+          <span className="text-[var(--sos-teal)] font-mono">@Carla-Rawlins</span>.
+          Include <span className="text-white font-semibold">SOS Color Run</span> and your name in the payment note.
+        </p>
+        <div className="glass rounded-xl px-6 py-4 mb-6 inline-block">
+          <p className="text-sm text-[var(--foreground-muted)]">Payment Amount</p>
+          <p className="text-2xl font-bold text-[var(--sos-teal)]">$25</p>
+        </div>
+        <p className="text-sm text-[var(--foreground-muted)] mb-6">
+          You&apos;ll receive a confirmation email once your payment is verified.
+        </p>
 
         <p className="text-sm text-[var(--foreground-muted)] mb-6">
           Questions? Contact us at{" "}
@@ -473,50 +448,21 @@ export function RegistrationForm() {
           )}
         </div>
 
-        {/* Payment Method */}
+        {/* Payment Info */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-white mb-2">
-            Payment Method *
+            Payment Method
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button
-              type="button"
-              onClick={() => handleInputChange("entryFeePayment", "VENMO")}
-              className={`p-4 rounded-xl border-2 transition-all text-left ${
-                formData.entryFeePayment === "VENMO"
-                  ? "border-[var(--sos-teal)] bg-[var(--sos-teal)]/10"
-                  : "border-white/10 hover:border-white/30"
-              }`}
-            >
-              <div className="text-lg font-bold text-white flex items-center gap-2">
-                💳 Venmo
-              </div>
-              <div className="text-sm text-[var(--foreground-muted)] mt-1">
-                Pay via Venmo to receive your t-shirt
-              </div>
-              <div className="text-xs text-[var(--sos-teal)] mt-2 font-mono">
-                @Carla-Rawlins
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleInputChange("entryFeePayment", "CASH")}
-              className={`p-4 rounded-xl border-2 transition-all text-left ${
-                formData.entryFeePayment === "CASH"
-                  ? "border-amber-500 bg-amber-500/10"
-                  : "border-white/10 hover:border-white/30"
-              }`}
-            >
-              <div className="text-lg font-bold text-white flex items-center gap-2">
-                💵 Cash at Event
-              </div>
-              <div className="text-sm text-[var(--foreground-muted)] mt-1">
-                Pay cash on event day
-              </div>
-              <div className="text-xs text-amber-400 mt-2 font-semibold">
-                ⚠️ No t-shirt included with cash payment
-              </div>
-            </button>
+          <div className="p-4 rounded-xl border-2 border-[var(--sos-teal)] bg-[var(--sos-teal)]/10">
+            <div className="text-lg font-bold text-white flex items-center gap-2">
+              Venmo
+            </div>
+            <div className="text-sm text-[var(--foreground-muted)] mt-1">
+              After registering, send payment via Venmo. Include <span className="text-white font-semibold">SOS Color Run</span> and your name in the note.
+            </div>
+            <div className="text-xs text-[var(--sos-teal)] mt-2 font-mono">
+              @Carla-Rawlins
+            </div>
           </div>
         </div>
 

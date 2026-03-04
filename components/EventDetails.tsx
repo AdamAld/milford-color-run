@@ -40,7 +40,7 @@ const included = [
   {
     icon: Shirt,
     title: "Event T-Shirt",
-    description: "Wear it white, leave it colorful",
+    description: "Early Bird registration only (before April 1)",
     color: "var(--color-pink)",
   },
   {

@@ -6,7 +6,7 @@ const SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL!;
 const PRIVATE_KEY = (process.env.GOOGLE_PRIVATE_KEY || "").replace(/\\n/g, "\n");
 
 // Event date used for age calculation
-const EVENT_DATE = new Date("2026-03-22");
+const EVENT_DATE = new Date("2026-05-02");
 
 function getAge(dob: string): number {
   const birth = new Date(dob);
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Payment method validation
-    if (entryFeePayment !== "VENMO" && entryFeePayment !== "CASH") {
+    if (entryFeePayment !== "VENMO") {
       return NextResponse.json(
         { success: false, error: "Invalid payment method" },
         { status: 400 }
