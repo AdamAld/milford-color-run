@@ -5,7 +5,7 @@ import { motion, useInView } from "framer-motion";
 import {
   MapPin,
   Flag,
-  TreePine,
+
   Waves,
   Car,
   Utensils,
@@ -329,95 +329,6 @@ export const pointsOfInterest = [
     color: "#ED1C24",
     priority: 3,
   },
-  // 8 Color Stations distributed along the 5K route
-  {
-    id: "station1",
-    type: "station" as POIType,
-    icon: Droplets,
-    label: "Station 1: Family Support",
-    description: "Orange color powder",
-    lat: 39.1879123,
-    lng: -84.199513, // West side heading north
-    color: "#F26522",
-    priority: 1,
-  },
-  {
-    id: "station2",
-    type: "station" as POIType,
-    icon: Droplets,
-    label: "Station 2: Positive Friends",
-    description: "Yellow color powder",
-    lat: 39.1893001,
-    lng: -84.2004528, // North edge heading west
-    color: "#FFC20E",
-    priority: 1,
-  },
-  {
-    id: "station3",
-    type: "station" as POIType,
-    icon: Droplets,
-    label: "Station 3: Mentors",
-    description: "Green color powder",
-    lat: 39.1882290,
-    lng: -84.2055593, // West side of lake
-    color: "#39B54A",
-    priority: 1,
-  },
-  {
-    id: "station4",
-    type: "station" as POIType,
-    icon: Droplets,
-    label: "Station 4: Healthy Activities",
-    description: "Blue color powder",
-    lat: 39.1864328,
-    lng: -84.2044006, // South-west of lake
-    color: "#29ABE2",
-    priority: 1,
-  },
-  {
-    id: "station5",
-    type: "station" as POIType,
-    icon: Droplets,
-    label: "Station 5: Generosity",
-    description: "Gray color powder",
-    lat: 39.1857578,
-    lng: -84.2013044, // South edge heading east
-    color: "#808080",
-    priority: 1,
-  },
-  {
-    id: "station6",
-    type: "station" as POIType,
-    icon: Droplets,
-    label: "Station 6: Spirituality",
-    description: "Purple color powder",
-    lat: 39.1856000,
-    lng: -84.1990000, // South service road
-    color: "#92278F",
-    priority: 1,
-  },
-  {
-    id: "station7",
-    type: "station" as POIType,
-    icon: Droplets,
-    label: "Station 7: Physical Health",
-    description: "Light blue color powder",
-    lat: 39.1865000,
-    lng: -84.1972000, // East perimeter heading north
-    color: "#87CEEB",
-    priority: 1,
-  },
-  {
-    id: "station8",
-    type: "station" as POIType,
-    icon: Droplets,
-    label: "Station 8: Mental Health",
-    description: "Red color powder",
-    lat: 39.1889000,
-    lng: -84.1971000, // NE corner heading back west
-    color: "#ED1C24",
-    priority: 1,
-  },
   {
     id: "barkpark",
     type: "nature" as POIType,
@@ -445,27 +356,27 @@ export const pointsOfInterest = [
 const landmarks = [
   {
     icon: Flag,
-    title: "Start / Finish",
-    description: "Miami Meadows Playground area",
-    position: "Near the parking lot with easy access",
+    title: "Start / Finish Line",
+    description: "Near the Miami Meadows Playground",
+    position: "Parking lot access nearby",
   },
   {
-    icon: TreePine,
+    icon: Dog,
     title: "Bark Park",
-    description: "Pass by the dog park area",
-    position: "Mile 1 marker",
+    description: "Pass by the community dog park multiple times",
+    position: "Early in the route near the east perimeter",
   },
   {
     icon: Waves,
     title: "Miami Meadows Lake",
-    description: "Scenic loop around the lake",
-    position: "Miles 2-3",
+    description: "Two scenic loops around the park lake",
+    position: "Central feature of the course",
   },
   {
     icon: MapPin,
-    title: "8 Color Stations",
-    description: "One for each Source of Strength",
-    position: "Throughout the course",
+    title: "Color Stations",
+    description: "8 stations — one for each Source of Strength",
+    position: "Spread along the entire route",
   },
 ];
 
@@ -593,7 +504,7 @@ export function RouteMap() {
               transition={{ delay: 1.5 }}
               className="text-center text-xs text-[var(--foreground-muted)] mt-4"
             >
-              Click markers to see details • Scroll to zoom • Drag to pan
+              Scroll to zoom • Drag to pan
             </motion.p>
           </motion.div>
 

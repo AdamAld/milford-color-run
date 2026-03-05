@@ -330,6 +330,30 @@ html.lenis, html.lenis body {
 .animation-delay-2000 { animation-delay: 2s; }
 .animation-delay-4000 { animation-delay: 4s; }
 
+/* Hero runner trail preview — runner dot movement */
+@keyframes runner-move {
+  0% { offset-distance: 0%; }
+  100% { offset-distance: 100%; }
+}
+
+.runner-dot {
+  offset-path: path("M 10,60 C 40,20 70,90 100,50 C 130,10 160,80 190,40");
+  offset-rotate: 0deg;
+  animation: runner-move 4s linear infinite;
+}
+
+/* Hero runner trail preview — color splat burst */
+@keyframes splat-pop {
+  0% { r: 0; opacity: 0; }
+  20% { r: 8; opacity: 0.8; }
+  50% { r: 10; opacity: 0.5; }
+  100% { r: 6; opacity: 0; }
+}
+
+.splat-circle {
+  animation: splat-pop 1s ease-out infinite;
+}
+
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
@@ -342,5 +366,16 @@ html.lenis, html.lenis body {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .runner-dot {
+    animation: none;
+    offset-distance: 50%;
+  }
+
+  .splat-circle {
+    animation: none;
+    r: 5;
+    opacity: 0.6;
   }
 }
