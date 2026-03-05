@@ -43,9 +43,9 @@ export function Navbar() {
 
       // Update URL hash without triggering scroll
       if (currentSection && window.location.hash !== `#${currentSection}`) {
-        window.history.replaceState(null, "", `#${currentSection}`);
+        window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${currentSection}`);
       } else if (!currentSection && window.location.hash) {
-        window.history.replaceState(null, "", window.location.pathname);
+        window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
       }
     };
 
@@ -92,7 +92,7 @@ export function Navbar() {
             onClick={(e) => {
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: "smooth" });
-              window.history.replaceState(null, "", window.location.pathname);
+              window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
             }}
           >
             <SOSWheelLogo size={28} animate />

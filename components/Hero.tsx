@@ -1,11 +1,18 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChevronDown, MapPin, Clock, Calendar } from "lucide-react";
 import { CountdownTimer } from "./CountdownTimer";
 import { SOSWheelLogo } from "./SOSWheelLogo";
 import { HeroMapPreview } from "./HeroMapPreview";
 import { track } from "@/lib/analytics";
+
+function HeroMapWithParams({ scrollToRoute }: { scrollToRoute: () => void }) {
+  const searchParams = useSearchParams();
+  const variant = searchParams.get("heroMap") === "leaflet" ? "leaflet" as const : "runner" as const;
+  return <HeroMapPreview variant={variant} onScrollToRoute={scrollToRoute} />;
+}
 
 export function Hero() {
   const heroRef = useRef<HTMLElement>(null);
@@ -120,8 +127,9 @@ export function Hero() {
         </div>
 
         {/* Mini Map Preview */}
-        <HeroMapPreview variant="runner" onScrollToRoute={scrollToRoute} />
-        {/*<HeroMapPreview variant="leaflet" onScrollToRoute={scrollToRoute} />*/}
+        <Suspense fallback={<HeroMapPreview variant="runner" onScrollToRoute={scrollToRoute} />}>
+          <HeroMapWithParams scrollToRoute={scrollToRoute} />
+        </Suspense>
 
         {/* Countdown Timer */}
         <div className="mb-10 animate-fade-in animation-delay-1000">

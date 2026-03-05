@@ -90,7 +90,7 @@ function RunnerTrailPreview() {
       <circle
         r="4"
         fill="white"
-        className="runner-dot"
+        className="hero-runner-dot"
         filter="url(#runnerGlow)"
       />
 

@@ -336,7 +336,7 @@ html.lenis, html.lenis body {
   100% { offset-distance: 100%; }
 }
 
-.runner-dot {
+.hero-runner-dot {
   offset-path: path("M 10,60 C 40,20 70,90 100,50 C 130,10 160,80 190,40");
   offset-rotate: 0deg;
   animation: runner-move 4s linear infinite;
@@ -368,7 +368,7 @@ html.lenis, html.lenis body {
     transform: none;
   }
 
-  .runner-dot {
+  .hero-runner-dot {
     animation: none;
     offset-distance: 50%;
   }
