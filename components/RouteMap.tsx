@@ -534,25 +534,51 @@ export function RouteMap() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 1.2, duration: 0.4 }}
-                className="mt-3 glass rounded-lg p-3"
+                className="mt-3 glass rounded-lg p-3 space-y-2.5"
               >
+                {/* Row 1: Route legs + Start/Finish */}
                 <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#00A651]" />
-                    <span className="text-white">Start/Finish</span>
+                    <span className="text-[var(--foreground-muted)] font-semibold text-[10px] uppercase tracking-wider">Route:</span>
                   </div>
+                  {[
+                    { color: "#ED1C24", label: "Leg 1" },
+                    { color: "#FFC20E", label: "Leg 2" },
+                    { color: "#39B54A", label: "Leg 3" },
+                    { color: "#92278F", label: "Leg 4" },
+                  ].map((leg) => (
+                    <div key={leg.label} className="flex items-center gap-1">
+                      <div className="w-4 h-[3px] rounded-full" style={{ background: leg.color }} />
+                      <span className="text-white text-[10px]">{leg.label}</span>
+                    </div>
+                  ))}
                   <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#00AEEF]" />
-                    <span className="text-white">Registration</span>
+                    <div className="w-2 h-2 rounded-full bg-[#39B54A]" />
+                    <span className="text-white text-[10px]">Start/Finish</span>
                   </div>
+                </div>
+
+                {/* Row 2: Color stations — SOS strengths */}
+                <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-xs">
                   <div className="flex items-center gap-1.5">
-                    <Droplets size={12} className="text-[#FFC20E]" />
-                    <span className="text-white">Color Stations</span>
+                    <Droplets size={10} className="text-[var(--foreground-muted)]" />
+                    <span className="text-[var(--foreground-muted)] font-semibold text-[10px] uppercase tracking-wider">Stations:</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-6 h-1 rounded-full bg-gradient-to-r from-[#F26522] via-[#00A651] to-[#92278F]" />
-                    <span className="text-white">Route</span>
-                  </div>
+                  {[
+                    { color: "#F26522", label: "Family Support" },
+                    { color: "#FFC20E", label: "Positive Friends" },
+                    { color: "#39B54A", label: "Mentors" },
+                    { color: "#29ABE2", label: "Healthy Activities" },
+                    { color: "#808080", label: "Generosity" },
+                    { color: "#92278F", label: "Spirituality" },
+                    { color: "#87CEEB", label: "Physical Health" },
+                    { color: "#ED1C24", label: "Mental Health" },
+                  ].map((s) => (
+                    <div key={s.label} className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
+                      <span className="text-white text-[10px]">{s.label}</span>
+                    </div>
+                  ))}
                 </div>
               </motion.div>
             </div>
