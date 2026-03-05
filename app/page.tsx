@@ -24,7 +24,7 @@ export default function Home() {
       <EventDetails />
       <RouteMap />
       <Registration />
-      <Sponsors />
+      {/*<Sponsors />*/}
       <Volunteer />
       <FAQ />
       <Footer />

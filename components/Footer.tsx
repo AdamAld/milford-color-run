@@ -13,7 +13,7 @@ const quickLinks = [
   { label: "Event Details", href: "#details" },
   { label: "Route Map", href: "#route" },
   { label: "Register", href: "#register" },
-  { label: "Sponsors", href: "#sponsors" },
+  // { label: "Sponsors", href: "#sponsors" },
   { label: "FAQ", href: "#faq" },
 ];
 
