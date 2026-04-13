@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { SOSWheelLogo } from "./SOSWheelLogo";
+import { REGISTRATION_URL, trackRegistrationClick } from "@/lib/registration";
 
 const navLinks = [
   { href: "#about", label: "About" },
@@ -49,9 +50,44 @@ export function Navbar() {
       }
     };
 
+    // If the page loaded with a hash, scroll to that section.
+    // Lazy-loaded components (e.g. RouteMap) shift the layout after
+    // initial render, so we re-scroll whenever the target moves until
+    // the page has stabilised.
+    let hashCleanup: (() => void) | undefined;
+    if (window.location.hash) {
+      const target = document.querySelector(window.location.hash) as HTMLElement | null;
+      if (target) {
+        const offset = 80;
+        let lastTop = -1;
+        let attempts = 0;
+        const maxAttempts = 15; // ~2.5 s at 6 fps
+
+        const scrollToTarget = () => {
+          const top = target.getBoundingClientRect().top + window.scrollY - offset;
+          if (Math.abs(top - lastTop) > 2 || attempts === 0) {
+            window.scrollTo({ top, behavior: attempts === 0 ? "instant" : "smooth" });
+            lastTop = top;
+          }
+          attempts++;
+          if (attempts < maxAttempts) {
+            timerId = setTimeout(scrollToTarget, 200);
+          }
+        };
+
+        let timerId: ReturnType<typeof setTimeout>;
+        // Kick off after first paint
+        timerId = setTimeout(scrollToTarget, 50);
+        hashCleanup = () => clearTimeout(timerId);
+      }
+    }
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll(); // Initial check
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      hashCleanup?.();
+    };
   }, []);
 
   const scrollToSection = (href: string) => {
@@ -125,14 +161,17 @@ export function Navbar() {
                 </motion.button>
               );
             })}
-            <motion.button
-              onClick={() => scrollToSection("#register")}
-              className="gradient-button ml-4 px-5 py-2 rounded-full text-sm font-semibold text-white"
+            <motion.a
+              href={REGISTRATION_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackRegistrationClick("navbar")}
+              className="gradient-button ml-4 px-5 py-2 rounded-full text-sm font-semibold text-white inline-block"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <span>Register Now</span>
-            </motion.button>
+            </motion.a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -193,15 +232,21 @@ export function Navbar() {
                     </motion.button>
                   );
                 })}
-                <motion.button
+                <motion.a
+                  href={REGISTRATION_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: navLinks.length * 0.05 }}
-                  onClick={() => scrollToSection("#register")}
-                  className="gradient-button px-6 py-3 rounded-xl text-lg font-semibold text-white mt-4"
+                  onClick={() => {
+                    trackRegistrationClick("mobile_menu");
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="gradient-button px-6 py-3 rounded-xl text-lg font-semibold text-white mt-4 text-center block"
                 >
                   <span>Register Now</span>
-                </motion.button>
+                </motion.a>
               </div>
             </motion.div>
           </motion.div>

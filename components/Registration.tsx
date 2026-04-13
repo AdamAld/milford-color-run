@@ -2,63 +2,31 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Check, ArrowRight, Users, Smartphone } from "lucide-react";
-import { RegistrationForm } from "./RegistrationForm";
+import { ExternalLink, Users, QrCode, Clock, Shirt, Check } from "lucide-react";
+import Image from "next/image";
 import { track } from "@/lib/analytics";
 
-const pricingTiers = [
-  {
-    name: "Early Bird",
-    price: "$20",
-    deadline: "Ends April 1, 2026",
-    description: "Includes your event t-shirt!",
-    features: [
-      "Event t-shirt",
-      "Color powder packets",
-      "Post-race celebration access",
-    ],
-    popular: true,
-    color: "var(--sos-teal)",
-  },
-  {
-    name: "Regular",
-    price: "$25",
-    deadline: "April 2 - May 1, 2026",
-    description: "T-shirts not available after April 1",
-    features: [
-      "Color powder packets",
-      "Post-race celebration access",
-      "No t-shirt included",
-    ],
-    popular: false,
-    color: "var(--sos-purple)",
-  },
-];
+const REGISTRATION_URL = "https://www.locallevelevents.com/events/details/44011";
 
-const steps = [
-  {
-    step: 1,
-    title: "Register Online",
-    description: "Fill out the registration form with your details",
-    icon: Users,
-  },
-  {
-    step: 2,
-    title: "Pay via Venmo",
-    description: "Send payment to our Venmo account",
-    icon: Smartphone,
-  },
-  {
-    step: 3,
-    title: "Get Confirmation",
-    description: "Receive email confirmation and event details",
-    icon: Check,
-  },
-];
+const EARLY_BIRD_DEADLINE = new Date("2026-03-31T23:59:59");
+
+function getDaysUntilDeadline(): number {
+  const now = new Date();
+  const diff = EARLY_BIRD_DEADLINE.getTime() - now.getTime();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
 
 export function Registration() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  const handleRegisterClick = () => {
+    track("registration_external_click", {
+      destination: REGISTRATION_URL,
+      location: "registration_section",
+    });
+    window.open(REGISTRATION_URL, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <section
@@ -83,7 +51,7 @@ export function Registration() {
         />
       </div>
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="max-w-4xl mx-auto relative z-10">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -109,179 +77,151 @@ export function Registration() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.15, duration: 0.5 }}
-          className="max-w-4xl mx-auto mb-8"
+          className="mb-10"
         >
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-6 py-4 text-center">
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-6 py-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-center sm:text-left">
+            <Clock size={20} className="text-amber-400 flex-shrink-0" />
             <p className="text-amber-400 font-semibold">
-              Register by April 1 to guarantee your event t-shirt! T-shirts are not available with regular registration.
+              Only <span className="text-white">{getDaysUntilDeadline()} days</span> left to get Early Bird pricing — register by March 31!
             </p>
           </div>
         </motion.div>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
-          {pricingTiers.map((tier, index) => (
-            <motion.div
-              key={tier.name}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.2 + index * 0.15, duration: 0.6 }}
-              className={`relative rounded-2xl p-8 ${
-                tier.popular
-                  ? "glass border-2 border-[var(--sos-teal)]"
-                  : "glass"
-              }`}
-            >
-              {tier.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="gradient-button px-4 py-1 rounded-full text-sm font-semibold text-white">
-                    <span>Best Value</span>
-                  </span>
-                </div>
-              )}
-
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-bold text-white mb-2">
-                  {tier.name}
-                </h3>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span
-                    className="text-5xl font-bold"
-                    style={{ color: tier.color }}
-                  >
-                    {tier.price}
-                  </span>
-                  <span className="text-[var(--foreground-muted)]">
-                    /person
-                  </span>
-                </div>
-                <p className="text-sm text-[var(--foreground-muted)] mt-2">
-                  {tier.deadline}
-                </p>
-              </div>
-
-              <ul className="space-y-3 mb-8">
-                {tier.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-center gap-3 text-[var(--foreground-muted)]"
-                  >
-                    <Check
-                      size={18}
-                      style={{ color: tier.color }}
-                      className="flex-shrink-0"
-                    />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <motion.a
-                href="#registration-form"
-                className={`block w-full py-4 rounded-xl text-center font-semibold transition-all ${
-                  tier.popular
-                    ? "gradient-button text-white"
-                    : "bg-white/10 text-white hover:bg-white/20"
-                }`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  track("cta_clicked", { location: "pricing", tier: tier.name });
-                  document.getElementById("registration-form")?.scrollIntoView({ behavior: "smooth" });
-                }}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  Register Now <ArrowRight size={18} />
-                </span>
-              </motion.a>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* How to Register */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.5, duration: 0.6 }}
-          className="glass rounded-2xl p-8 md:p-10 mb-16"
-        >
-          <h3 className="text-2xl font-bold text-white mb-8 text-center">
-            How to Register
-          </h3>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {steps.map((step, index) => (
-              <motion.div
-                key={step.step}
-                initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.6 + index * 0.1, duration: 0.5 }}
-                className="relative text-center"
-              >
-                {/* Connector line */}
-                {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-[60%] w-[80%] h-px bg-gradient-to-r from-[var(--sos-teal)] to-[var(--sos-purple)] opacity-30" />
-                )}
-
-                <div className="w-16 h-16 rounded-full gradient-button mx-auto mb-4 flex items-center justify-center">
-                  <step.icon size={28} className="text-white relative z-10" />
-                </div>
-                <span className="text-xs text-[var(--sos-teal)] uppercase tracking-wider">
-                  Step {step.step}
-                </span>
-                <h4 className="text-lg font-bold text-white mt-1 mb-2">
-                  {step.title}
-                </h4>
-                <p className="text-sm text-[var(--foreground-muted)]">
-                  {step.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Registration Form */}
-        <motion.div
-          id="registration-form"
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.6, duration: 0.6 }}
-          className="max-w-2xl mx-auto mb-16 scroll-mt-24"
-        >
-          <RegistrationForm />
-        </motion.div>
-
-        {/* Venmo Payment Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.7, duration: 0.6 }}
-          className="text-center"
-        >
-          <div className="inline-flex flex-col items-center glass rounded-2xl p-8">
-            <Smartphone
-              size={48}
-              className="text-[var(--sos-teal)] mb-4"
-            />
-            <h3 className="text-xl font-bold text-white mb-2">
-              Payment via Venmo
-            </h3>
-            <p className="text-[var(--foreground-muted)] mb-4 max-w-md">
-              After completing your registration form, send payment to our
-              Venmo account. Include <span className="text-white font-semibold">SOS Color Run</span> and your name in the payment note.
-            </p>
-            <div className="glass rounded-xl px-6 py-3 mb-4">
-              <span className="text-lg font-mono text-[var(--sos-teal)]">
-                @Carla-Rawlins
+        {/* Pricing Comparison */}
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          {/* Early Bird */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="relative glass rounded-2xl p-8 border-2 border-[var(--sos-teal)]"
+          >
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span className="gradient-button px-4 py-1 rounded-full text-sm font-semibold text-white">
+                <span>Best Value</span>
               </span>
             </div>
-            <p className="text-xs text-[var(--foreground-muted)]">
-              Questions? Email us at{" "}
-              <a href="mailto:gray_c@milfordschools.org" className="text-[var(--sos-teal)] hover:underline">
-                gray_c@milfordschools.org
-              </a>
-            </p>
+
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold text-white mb-2">Early Bird</h3>
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-5xl font-bold text-[var(--sos-teal)]">$20</span>
+                <span className="text-[var(--foreground-muted)]">/person</span>
+              </div>
+              <p className="text-sm text-amber-400 font-medium mt-2">
+                Register by March 31
+              </p>
+            </div>
+
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center gap-3 text-[var(--foreground-muted)]">
+                <Shirt size={18} className="text-[var(--sos-teal)] flex-shrink-0" />
+                <span><span className="text-white font-medium">Event t-shirt included</span> — only available with Early Bird</span>
+              </li>
+              <li className="flex items-center gap-3 text-[var(--foreground-muted)]">
+                <Check size={18} className="text-[var(--sos-teal)] flex-shrink-0" />
+                Color powder packets at each station
+              </li>
+              <li className="flex items-center gap-3 text-[var(--foreground-muted)]">
+                <Check size={18} className="text-[var(--sos-teal)] flex-shrink-0" />
+                Save $5 vs. regular registration
+              </li>
+            </ul>
+          </motion.div>
+
+          {/* Regular */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="glass rounded-2xl p-8 opacity-80"
+          >
+            <div className="text-center mb-6 pt-4">
+              <h3 className="text-xl font-bold text-white mb-2">Regular</h3>
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-5xl font-bold text-[var(--sos-purple)]">$25</span>
+                <span className="text-[var(--foreground-muted)]">/person</span>
+              </div>
+              <p className="text-sm text-[var(--foreground-muted)] mt-2">
+                After April 1
+              </p>
+            </div>
+
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center gap-3 text-[var(--foreground-muted)]">
+                <Check size={18} className="text-[var(--sos-purple)] flex-shrink-0" />
+                Color powder packets at each station
+              </li>
+              <li className="flex items-center gap-3 text-[var(--foreground-muted)] line-through opacity-50">
+                <Shirt size={18} className="flex-shrink-0" />
+                No t-shirt included
+              </li>
+            </ul>
+          </motion.div>
+        </div>
+
+        {/* Registration Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="glass rounded-2xl p-8 md:p-12 mb-12"
+        >
+          <div className="flex flex-col md:flex-row items-center gap-10">
+            {/* Left: CTA */}
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="text-2xl font-bold text-white mb-3">
+                Ready to Run?
+              </h3>
+              <p className="text-[var(--foreground-muted)] mb-6">
+                Registration is handled through Local Level Events. Click below
+                to complete your sign-up, pick your t-shirt size, and lock in
+                your spot before Early Bird pricing ends.
+              </p>
+
+              <motion.button
+                onClick={handleRegisterClick}
+                className="gradient-button px-8 py-4 rounded-xl text-lg font-semibold text-white transition-all inline-flex items-center gap-3"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <span className="inline-flex items-center gap-3">
+                  Register Now
+                  <ExternalLink size={20} />
+                </span>
+              </motion.button>
+
+              <p className="text-xs text-[var(--foreground-muted)] mt-4">
+                You&apos;ll be redirected to Local Level Events to complete registration.
+              </p>
+            </div>
+
+            {/* Right: QR Code */}
+            <div className="flex-shrink-0">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="glass rounded-2xl p-6 text-center"
+              >
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <QrCode size={18} className="text-[var(--sos-teal)]" />
+                  <span className="text-sm font-medium text-white">Scan to Register</span>
+                </div>
+                <div className="bg-white rounded-xl p-3 inline-block">
+                  <Image
+                    src="/registration-qr.svg"
+                    alt="QR code to register for the Color Run"
+                    width={180}
+                    height={180}
+                    className="block"
+                  />
+                </div>
+                <p className="text-xs text-[var(--foreground-muted)] mt-3 max-w-[200px]">
+                  Point your phone&apos;s camera at the code
+                </p>
+              </motion.div>
+            </div>
           </div>
         </motion.div>
 
@@ -289,8 +229,8 @@ export function Registration() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.8, duration: 0.5 }}
-          className="mt-12 text-center"
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="text-center"
         >
           <div className="inline-flex items-center gap-2 glass px-6 py-3 rounded-full">
             <Users size={18} className="text-[var(--sos-teal)]" />

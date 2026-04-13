@@ -114,6 +114,8 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
     if (!mapRef.current || mapInstanceRef.current) return;
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
     // Pre-compute distances
     const cumDists = computeCumulativeDistances(routeCoordinates);
@@ -150,10 +152,13 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
     const routeBounds = L.latLngBounds([minLat, minLng], [maxLat, maxLng]);
 
     // Initialize map fitted to route bounds
+    // Fix #1: Use Canvas renderer on iOS — avoids expensive SVG filter
+    // compositing and path thrashing that causes jitter on Mobile Safari.
     const map = L.map(mapRef.current, {
       zoomControl: true,
       scrollWheelZoom: true,
       attributionControl: true,
+      ...(isIOS ? { renderer: L.canvas() } : {}),
     });
     map.fitBounds(routeBounds, { padding: [30, 30] });
     mapInstanceRef.current = map;
@@ -177,23 +182,25 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
       opacity: 1,
       lineCap: "round",
       lineJoin: "round",
-      className: "route-base-trail",
+      ...(!isIOS ? { className: "route-base-trail" } : {}),
     }).addTo(map);
 
     // =============================================
     // LAYER 2: Glow underlay — active leg only, blurred for neon halo
+    // Fix #2: On iOS, use wider/softer line instead of CSS blur filter.
     // =============================================
     const glowLine = L.polyline([], {
       color: LEG_COLORS[0],
-      weight: 10,
-      opacity: 0.15,
+      weight: isIOS ? 14 : 10,
+      opacity: isIOS ? 0.12 : 0.15,
       lineCap: "round",
       lineJoin: "round",
-      className: "route-glow",
+      ...(!isIOS ? { className: "route-glow" } : {}),
     }).addTo(map);
 
     // =============================================
     // LAYER 3: Active line — active leg only, bright with drop-shadow
+    // Fix #2: Skip CSS drop-shadow on iOS (canvas renderer ignores it anyway).
     // =============================================
     const activeLine = L.polyline([], {
       color: LEG_COLORS[0],
@@ -201,7 +208,7 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
       opacity: 1,
       lineCap: "round",
       lineJoin: "round",
-      className: "route-active",
+      ...(!isIOS ? { className: "route-active" } : {}),
     }).addTo(map);
 
     // =============================================
@@ -216,10 +223,11 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
       weight: 2.5,
       fillOpacity: 0,
       opacity: 0,
-      className: "paint-head",
+      ...(!isIOS ? { className: "paint-head" } : {}),
     }).addTo(map);
 
-    const paintGlow = L.circleMarker(startCoord, {
+    // Fix #2: Skip glow circle on iOS — the circleMarker itself is sufficient.
+    const paintGlow = isIOS ? null : L.circleMarker(startCoord, {
       radius: 16,
       fillColor: LEG_COLORS[0],
       color: LEG_COLORS[0],
@@ -333,10 +341,12 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
     // =============================================
     const runnerDot = L.circleMarker(startCoord, {
       radius: 6, fillColor: LEG_COLORS[0], color: "#fff", weight: 2,
-      fillOpacity: 0, opacity: 0, className: "runner-dot",
+      fillOpacity: 0, opacity: 0,
+      ...(!isIOS ? { className: "runner-dot" } : {}),
     }).addTo(map);
 
-    const runnerGlow = L.circleMarker(startCoord, {
+    // Fix #2: Skip animated glow circle on iOS.
+    const runnerGlow = isIOS ? null : L.circleMarker(startCoord, {
       radius: 16, fillColor: LEG_COLORS[0], color: LEG_COLORS[0], weight: 0,
       fillOpacity: 0, opacity: 0, className: "runner-glow",
     }).addTo(map);
@@ -373,7 +383,7 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
       hasDrawnRef.current = true;
 
       paintHead.setStyle({ fillOpacity: 0.95, opacity: 0.95 });
-      paintGlow.setStyle({ fillOpacity: 0.15, opacity: 0.2 });
+      paintGlow?.setStyle({ fillOpacity: 0.15, opacity: 0.2 });
 
       const startTime = performance.now();
 
@@ -393,8 +403,8 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
         const headColor = LEG_COLORS[currentLeg];
         paintHead.setLatLng([pos.lat, pos.lng]);
         paintHead.setStyle({ fillColor: headColor });
-        paintGlow.setLatLng([pos.lat, pos.lng]);
-        paintGlow.setStyle({ fillColor: headColor, color: headColor });
+        paintGlow?.setLatLng([pos.lat, pos.lng]);
+        paintGlow?.setStyle({ fillColor: headColor, color: headColor });
 
         // Draw base trail up to current position (gray)
         const baseCoords = routeCoordinates.slice(0, coordIdx + 1);
@@ -449,7 +459,7 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
 
         // Fade paint head
         paintHead.setStyle({ fillOpacity: 0, opacity: 0 });
-        paintGlow.setStyle({ fillOpacity: 0, opacity: 0 });
+        paintGlow?.setStyle({ fillOpacity: 0, opacity: 0 });
 
         // Burst on start/finish
         const sfEl = map.getContainer().querySelector('[data-poi-id="startfinish"]') as HTMLElement | null;
@@ -473,10 +483,14 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
 
     function startRunnerLoop() {
       runnerDot.setStyle({ fillOpacity: 0.95, opacity: 0.9 });
-      runnerGlow.setStyle({ fillOpacity: 0.15, opacity: 0.25 });
+      runnerGlow?.setStyle({ fillOpacity: 0.15, opacity: 0.25 });
 
       let loopStart = performance.now();
       let prevRunnerLeg = -1;
+      // Cache the sfEl query once instead of every frame
+      const sfEl = map.getContainer().querySelector('[data-poi-id="startfinish"]') as HTMLElement | null;
+      // iOS fix #3: throttle runner loop to ~30fps (every 33ms)
+      let lastFrameTime = 0;
 
       function animateRunner(now: number) {
         if (!isVisibleRef.current) {
@@ -484,6 +498,14 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
           runnerAnimRef.current = requestAnimationFrame(animateRunner);
           return;
         }
+
+        // Fix #3: On iOS, skip frames to target ~30fps.
+        // This halves the number of canvas redraws per second.
+        if (isIOS && now - lastFrameTime < 33) {
+          runnerAnimRef.current = requestAnimationFrame(animateRunner);
+          return;
+        }
+        lastFrameTime = now;
 
         const elapsed = (now - loopStart) % RUNNER_CYCLE;
         // During pause, hold at finish (fraction = 1)
@@ -499,20 +521,28 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
         const legIdx = getLegIndex(pos.segIndex);
         const color = LEG_COLORS[legIdx];
 
-        // Move runner
+        // Move runner dot
         runnerDot.setLatLng([pos.lat, pos.lng]);
-        runnerDot.setStyle({ fillColor: color });
-        runnerGlow.setLatLng([pos.lat, pos.lng]);
-        runnerGlow.setStyle({ fillColor: color, color });
+        runnerGlow?.setLatLng([pos.lat, pos.lng]);
 
-        // Update active leg overlay
+        // Only call setStyle when the leg (and thus color) actually changes —
+        // avoids a redundant canvas/SVG repaint every single frame.
         if (legIdx !== prevRunnerLeg) {
-          // Leg transition burst
-          const dotPath = (runnerDot as unknown as { _path?: HTMLElement })._path;
-          if (dotPath) {
-            dotPath.classList.remove("leg-burst");
-            void dotPath.offsetWidth; // force reflow
-            dotPath.classList.add("leg-burst");
+          runnerDot.setStyle({ fillColor: color });
+          runnerGlow?.setStyle({ fillColor: color, color });
+
+          // Fix #4: Leg transition burst — skip on iOS (canvas has no SVG paths),
+          // use double-rAF on desktop instead of forced reflow.
+          if (!isIOS) {
+            const dotPath = (runnerDot as unknown as { _path?: HTMLElement })._path;
+            if (dotPath) {
+              dotPath.classList.remove("leg-burst");
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  dotPath.classList.add("leg-burst");
+                });
+              });
+            }
           }
 
           activeLine.setStyle({ color });
@@ -562,7 +592,6 @@ export default function LeafletMap({ selectedPOI, onPOISelect }: LeafletMapProps
         });
 
         // --- Start/Finish glow near endpoints ---
-        const sfEl = map.getContainer().querySelector('[data-poi-id="startfinish"]') as HTMLElement | null;
         if (fraction < 0.03 || fraction > 0.95) {
           sfEl?.classList.add("sf-glow");
         } else {

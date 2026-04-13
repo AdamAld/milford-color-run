@@ -31,6 +31,8 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
         person_profiles: "identified_only",
         capture_pageview: false, // manual capture for App Router
         capture_pageleave: true,
+        autocapture: true,
+        capture_exceptions: true,
       });
     }
   }, []);

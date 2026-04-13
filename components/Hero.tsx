@@ -6,7 +6,7 @@ import { ChevronDown, MapPin, Clock, Calendar } from "lucide-react";
 import { CountdownTimer } from "./CountdownTimer";
 import { SOSWheelLogo } from "./SOSWheelLogo";
 import { HeroMapPreview } from "./HeroMapPreview";
-import { track } from "@/lib/analytics";
+import { REGISTRATION_URL, trackRegistrationClick } from "@/lib/registration";
 
 function HeroMapWithParams({ scrollToRoute }: { scrollToRoute: () => void }) {
   const searchParams = useSearchParams();
@@ -24,11 +24,9 @@ export function Hero() {
     }
   };
 
-  const scrollToRegister = () => {
-    const registerSection = document.querySelector("#register");
-    if (registerSection) {
-      registerSection.scrollIntoView({ behavior: "smooth" });
-    }
+  const handleRegister = () => {
+    trackRegistrationClick("hero");
+    window.open(REGISTRATION_URL, "_blank", "noopener,noreferrer");
   };
 
   const scrollToRoute = () => {
@@ -139,10 +137,7 @@ export function Hero() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in animation-delay-1200">
           <button
-            onClick={() => {
-              track("cta_clicked", { location: "hero" });
-              scrollToRegister();
-            }}
+            onClick={handleRegister}
             className="gradient-button px-8 py-4 rounded-full text-lg font-semibold text-white hover:scale-105 active:scale-95 transition-transform"
           >
             <span>Register Now</span>

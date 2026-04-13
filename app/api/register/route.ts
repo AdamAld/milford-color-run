@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
+import { captureServerException } from "@/lib/posthog-server";
 
 const SHEET_ID = process.env.GOOGLE_SHEET_ID!;
 const SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL!;
@@ -161,6 +162,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Registration API error:", error);
+    captureServerException(error, { route: "/api/register" });
     return NextResponse.json(
       { success: false, error: "Failed to submit registration" },
       { status: 500 }
